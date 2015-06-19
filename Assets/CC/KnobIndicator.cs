@@ -1,14 +1,18 @@
 ﻿using UnityEngine;
-using System.Collections;
+using MidiJack;
 
 public class KnobIndicator : MonoBehaviour
 {
     public int knobNumber;
 
-    void Update ()
+    void Awake()
     {
-        var position = transform.localPosition;
-        position.y = (MidiJack.GetKnob (knobNumber) - 0.5f) * 10.0f;
-        transform.localPosition = position;
+        transform.localScale = Vector3.zero;
+    }
+
+    void Update()
+    {
+        var s = MidiMaster.GetKnob(knobNumber);
+        transform.localScale = new Vector3(1, s, 1);
     }
 }

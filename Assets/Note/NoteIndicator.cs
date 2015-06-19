@@ -1,13 +1,15 @@
 ﻿using UnityEngine;
-using System.Collections;
+using MidiJack;
 
 public class NoteIndicator : MonoBehaviour
 {
     public int noteNumber;
 
-    void Update ()
+    void Update()
     {
-        transform.localScale = Vector3.one * (0.1f + MidiJack.GetKey (noteNumber));
-        GetComponent<Renderer>().material.color = MidiJack.GetKeyDown (noteNumber) ? Color.red : Color.white;
+        transform.localScale = Vector3.one * (0.1f + MidiMaster.GetKey(noteNumber));
+
+        var color = MidiMaster.GetKeyDown(noteNumber) ? Color.red : Color.white;
+        GetComponent<Renderer>().material.color = color;
     }
 }
