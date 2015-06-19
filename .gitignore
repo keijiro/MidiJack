@@ -1,0 +1,15 @@
+Library
+Temp
+
+*.csproj
+*.unityproj
+*.sln
+*.pidb
+*.userprefs
+
+xcuserdata
+xcshareddata
+*.pbxuser
+
+*.swp
+.DS_Store
