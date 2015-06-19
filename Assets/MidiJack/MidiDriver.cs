@@ -26,7 +26,7 @@ using System.Runtime.InteropServices;
 
 namespace MidiJack
 {
-    public class MidiDriver : MonoBehaviour
+    public class MidiDriver
     {
         #region Internal Data
 
@@ -53,12 +53,16 @@ namespace MidiJack
         // Channel state array
         ChannelState[] _channelArray;
 
+        // Last frame number
+        int _lastFrame;
+
         #endregion
 
         #region Accessor Methods
 
         public float GetKey(MidiChannel channel, int noteNumber)
         {
+            CheckUpdate();
             var v = _channelArray[(int)channel]._noteArray[noteNumber];
             if (v > 1) return v - 1;
             if (v > 0) return v;
@@ -67,16 +71,19 @@ namespace MidiJack
 
         public bool GetKeyDown(MidiChannel channel, int noteNumber)
         {
+            CheckUpdate();
             return _channelArray[(int)channel]._noteArray[noteNumber] > 1;
         }
 
         public bool GetKeyUp(MidiChannel channel, int noteNumber)
         {
+            CheckUpdate();
             return _channelArray[(int)channel]._noteArray[noteNumber] < 0;
         }
 
         public int[] GetKnobNumbers(MidiChannel channel)
         {
+            CheckUpdate();
             var cs = _channelArray[(int)channel];
             var numbers = new int[cs._knobMap.Count];
             cs._knobMap.Keys.CopyTo(numbers, 0);
@@ -85,6 +92,7 @@ namespace MidiJack
 
         public float GetKnob(MidiChannel channel, int knobNumber, float defaultValue)
         {
+            CheckUpdate();
             var cs = _channelArray[(int)channel];
             if (cs._knobMap.ContainsKey(knobNumber)) return cs._knobMap[knobNumber];
             return defaultValue;
@@ -107,9 +115,9 @@ namespace MidiJack
 
         #endregion
 
-        #region Monobehaviour functions
+        #region Public Methods
 
-        void Awake()
+        MidiDriver()
         {
             _channelArray = new ChannelState[17];
             for (var i = 0; i < 17; i++)
@@ -120,7 +128,22 @@ namespace MidiJack
             #endif
         }
 
-        void Update()
+        public bool CheckUpdate()
+        {
+            if (Application.isPlaying)
+            {
+                var frame = Time.frameCount;
+                if (frame == _lastFrame) return false;
+                _lastFrame = frame;
+            }
+            return Update();
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        bool Update()
         {
             // Update the note state array.
             foreach (var cs in _channelArray)
@@ -136,6 +159,7 @@ namespace MidiJack
             }
 
             // Process the message queue.
+            var incoming = false;
             while (true)
             {
                 // Pop from the queue.
@@ -179,6 +203,8 @@ namespace MidiJack
                 // Record the message history.
                 _messageHistory.Enqueue(message);
                 #endif
+
+                incoming = true;
             }
 
             #if UNITY_EDITOR
@@ -186,38 +212,27 @@ namespace MidiJack
             while (_messageHistory.Count > 8)
                 _messageHistory.Dequeue();
             #endif
+
+            return incoming;
         }
 
         #endregion
 
-        #region Native module interface
+        #region Native Plugin Interface
 
         [DllImport("MidiJackPlugin", EntryPoint="MidiJackDequeueIncomingData")]
         public static extern ulong DequeueIncomingData();
 
         #endregion
 
-        #region Singleton class handling
+        #region Singleton Class Instance
 
         static MidiDriver _instance;
 
         public static MidiDriver Instance {
             get {
                 if (_instance == null)
-                {
-                    var previous = FindObjectOfType(typeof(MidiDriver));
-                    if (previous)
-                    {
-                        Debug.LogWarning("Initialized twice. Don't use MidiDriver directly.");
-                        _instance = (MidiDriver)previous;
-                    }
-                    else
-                    {
-                        var go = new GameObject("(MIDI Driver)");
-                        _instance = go.AddComponent<MidiDriver>();
-                        DontDestroyOnLoad(go);
-                    }
-                }
+                    _instance = new MidiDriver();
                 return _instance;
             }
         }

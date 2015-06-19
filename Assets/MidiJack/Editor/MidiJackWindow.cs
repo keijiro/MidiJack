@@ -26,9 +26,47 @@ using System.Runtime.InteropServices;
 
 namespace MidiJack
 {
-    [CustomEditor(typeof(MidiDriver))]
-    class MidiDriverEditor : Editor
+    class MidiJackWindow : EditorWindow
     {
+        #region Custom Editor Window Code
+
+        [MenuItem ("Window/MIDI Jack")]
+        public static void ShowWindow()
+        {
+            EditorWindow.GetWindow<MidiJackWindow>("MIDI Jack");
+        }
+
+        void OnGUI()
+        {
+            var endpointCount = CountEndpoints();
+
+            // Endpoints
+            var temp = "Detected MIDI endpoints:";
+            for (var i = 0; i < endpointCount; i++)
+            {
+                var id = GetEndpointIdAtIndex(i);
+                var name = GetEndpointName(id);
+                temp += "\n" + id.ToString("X8") + ": " + name;
+            }
+            EditorGUILayout.HelpBox(temp, MessageType.None);
+
+            // Message history
+            temp = "Recent MIDI messages:";
+            foreach (var message in MidiDriver.Instance.History)
+                temp += "\n" + message.ToString();
+            EditorGUILayout.HelpBox(temp, MessageType.None);
+        }
+
+        void Update()
+        {
+            if (EditorApplication.isPlaying || MidiDriver.Instance.CheckUpdate())
+                Repaint();
+        }
+
+        #endregion
+
+        #region Native Plugin Interface
+
         [DllImport("MidiJackPlugin", EntryPoint="MidiJackCountEndpoints")]
         public static extern int CountEndpoints();
 
@@ -42,38 +80,6 @@ namespace MidiJack
             return Marshal.PtrToStringAnsi(MidiJackGetEndpointName(id));
         }
 
-        public override void OnInspectorGUI()
-        {
-            // Only shows the details on Play Mode.
-            if (EditorApplication.isPlaying)
-            {
-                var endpointCount = CountEndpoints();
-
-                // Endpoints.
-                var temp = "Detected MIDI endpoints:";
-                for (var i = 0; i < endpointCount; i++)
-                {
-                    var id = GetEndpointIdAtIndex (i);
-                    var name = GetEndpointName (id);
-                    temp += "\n" + id.ToString ("X8") + ": " + name;
-                }
-                EditorGUILayout.HelpBox (temp, MessageType.None);
-
-                // Incomming messages.
-                temp = "Incoming MIDI messages:";
-                foreach (var message in (target as MidiDriver).History)
-                {
-                    temp += "\n" + message.ToString ();
-                }
-                EditorGUILayout.HelpBox (temp, MessageType.None);
-
-                // Make itself dirty to update on every time.
-                EditorUtility.SetDirty (target);
-            }
-            else
-            {
-                EditorGUILayout.HelpBox ("You can view the sutatus on Play Mode.", MessageType.Info);
-            }
-        }
+        #endregion
     }
 }
