@@ -22,32 +22,46 @@
 //
 using UnityEngine;
 using UnityEditor;
+using System.Runtime.InteropServices;
 
 namespace MidiJack
 {
-    [CustomEditor(typeof(MidiMaster))]
-    class MidiMasterEditor : Editor
+    [CustomEditor(typeof(MidiDriver))]
+    class MidiDriverEditor : Editor
     {
-        public override void OnInspectorGUI ()
+        [DllImport("MidiJackPlugin", EntryPoint="MidiJackCountEndpoints")]
+        public static extern int CountEndpoints();
+
+        [DllImport("MidiJackPlugin", EntryPoint="MidiJackGetEndpointIDAtIndex")]
+        public static extern uint GetEndpointIdAtIndex(int index);
+
+        [DllImport("MidiJackPlugin")]
+        private static extern System.IntPtr MidiJackGetEndpointName(uint id);
+
+        public static string GetEndpointName(uint id) {
+            return Marshal.PtrToStringAnsi(MidiJackGetEndpointName(id));
+        }
+
+        public override void OnInspectorGUI()
         {
             // Only shows the details on Play Mode.
             if (EditorApplication.isPlaying)
             {
-                var endpointCount = MidiMaster.CountEndpoints ();
+                var endpointCount = CountEndpoints();
 
                 // Endpoints.
                 var temp = "Detected MIDI endpoints:";
                 for (var i = 0; i < endpointCount; i++)
                 {
-                    var id = MidiMaster.GetEndpointIdAtIndex (i);
-                    var name = MidiMaster.GetEndpointName (id);
+                    var id = GetEndpointIdAtIndex (i);
+                    var name = GetEndpointName (id);
                     temp += "\n" + id.ToString ("X8") + ": " + name;
                 }
                 EditorGUILayout.HelpBox (temp, MessageType.None);
 
                 // Incomming messages.
                 temp = "Incoming MIDI messages:";
-                foreach (var message in (target as MidiMaster).History)
+                foreach (var message in (target as MidiDriver).History)
                 {
                     temp += "\n" + message.ToString ();
                 }
