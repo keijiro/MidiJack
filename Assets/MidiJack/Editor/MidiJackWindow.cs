@@ -30,7 +30,7 @@ namespace MidiJack
     {
         #region Custom Editor Window Code
 
-        [MenuItem ("Window/MIDI Jack")]
+        [MenuItem("Window/MIDI Jack")]
         public static void ShowWindow()
         {
             EditorWindow.GetWindow<MidiJackWindow>("MIDI Jack");
@@ -41,7 +41,7 @@ namespace MidiJack
             var endpointCount = CountEndpoints();
 
             // Endpoints
-            var temp = "Detected MIDI endpoints:";
+            var temp = "Detected MIDI devices:";
             for (var i = 0; i < endpointCount; i++)
             {
                 var id = GetEndpointIdAtIndex(i);
@@ -57,10 +57,25 @@ namespace MidiJack
             EditorGUILayout.HelpBox(temp, MessageType.None);
         }
 
+        #endregion
+
+        #region Update And Repaint
+
+        const int _updateInterval = 15;
+        int _countToUpdate;
+        int _lastMessageCount;
+
         void Update()
         {
-            if (EditorApplication.isPlaying || MidiDriver.Instance.CheckUpdate())
+            if (--_countToUpdate > 0) return;
+
+            var mcount = MidiDriver.Instance.TotalMessageCount;
+            if (mcount != _lastMessageCount) {
                 Repaint();
+                _lastMessageCount = mcount;
+            }
+
+            _countToUpdate = _updateInterval;
         }
 
         #endregion
@@ -68,15 +83,15 @@ namespace MidiJack
         #region Native Plugin Interface
 
         [DllImport("MidiJackPlugin", EntryPoint="MidiJackCountEndpoints")]
-        public static extern int CountEndpoints();
+        static extern int CountEndpoints();
 
         [DllImport("MidiJackPlugin", EntryPoint="MidiJackGetEndpointIDAtIndex")]
-        public static extern uint GetEndpointIdAtIndex(int index);
+        static extern uint GetEndpointIdAtIndex(int index);
 
         [DllImport("MidiJackPlugin")]
-        private static extern System.IntPtr MidiJackGetEndpointName(uint id);
+        static extern System.IntPtr MidiJackGetEndpointName(uint id);
 
-        public static string GetEndpointName(uint id) {
+        static string GetEndpointName(uint id) {
             return Marshal.PtrToStringAnsi(MidiJackGetEndpointName(id));
         }
 

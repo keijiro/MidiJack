@@ -53,7 +53,7 @@ namespace MidiJack
         // Channel state array
         ChannelState[] _channelArray;
 
-        // Last frame number
+        // Last update frame number
         int _lastFrame;
 
         #endregion
@@ -62,7 +62,7 @@ namespace MidiJack
 
         public float GetKey(MidiChannel channel, int noteNumber)
         {
-            CheckUpdate();
+            UpdateIfNeeded();
             var v = _channelArray[(int)channel]._noteArray[noteNumber];
             if (v > 1) return v - 1;
             if (v > 0) return v;
@@ -71,19 +71,19 @@ namespace MidiJack
 
         public bool GetKeyDown(MidiChannel channel, int noteNumber)
         {
-            CheckUpdate();
+            UpdateIfNeeded();
             return _channelArray[(int)channel]._noteArray[noteNumber] > 1;
         }
 
         public bool GetKeyUp(MidiChannel channel, int noteNumber)
         {
-            CheckUpdate();
+            UpdateIfNeeded();
             return _channelArray[(int)channel]._noteArray[noteNumber] < 0;
         }
 
         public int[] GetKnobNumbers(MidiChannel channel)
         {
-            CheckUpdate();
+            UpdateIfNeeded();
             var cs = _channelArray[(int)channel];
             var numbers = new int[cs._knobMap.Count];
             cs._knobMap.Keys.CopyTo(numbers, 0);
@@ -92,7 +92,7 @@ namespace MidiJack
 
         public float GetKnob(MidiChannel channel, int knobNumber, float defaultValue)
         {
-            CheckUpdate();
+            UpdateIfNeeded();
             var cs = _channelArray[(int)channel];
             if (cs._knobMap.ContainsKey(knobNumber)) return cs._knobMap[knobNumber];
             return defaultValue;
@@ -104,7 +104,31 @@ namespace MidiJack
 
         #if UNITY_EDITOR
 
-        // Incoming message history
+        // Update timer
+        const float _updateInterval = 1.0f / 30;
+        float _lastUpdateTime;
+
+        bool CheckUpdateInterval()
+        {
+            var current = Time.realtimeSinceStartup;
+            if (current - _lastUpdateTime > _updateInterval || current < _lastUpdateTime) {
+                _lastUpdateTime = current;
+                return true;
+            }
+            return false;
+        }
+
+        // Total message count
+        int _totalMessageCount;
+
+        public int TotalMessageCount {
+            get {
+                UpdateIfNeeded();
+                return _totalMessageCount;
+            }
+        }
+
+        // Message history
         Queue<MidiMessage> _messageHistory;
 
         public Queue<MidiMessage> History {
@@ -128,22 +152,29 @@ namespace MidiJack
             #endif
         }
 
-        public bool CheckUpdate()
-        {
-            if (Application.isPlaying)
-            {
-                var frame = Time.frameCount;
-                if (frame == _lastFrame) return false;
-                _lastFrame = frame;
-            }
-            return Update();
-        }
-
         #endregion
 
         #region Private Methods
 
-        bool Update()
+        void UpdateIfNeeded()
+        {
+            if (Application.isPlaying)
+            {
+                var frame = Time.frameCount;
+                if (frame != _lastFrame) {
+                    Update();
+                    _lastFrame = frame;
+                }
+            }
+            else
+            {
+                #if UNITY_EDITOR
+                if (CheckUpdateInterval()) Update();
+                #endif
+            }
+        }
+
+        void Update()
         {
             // Update the note state array.
             foreach (var cs in _channelArray)
@@ -159,7 +190,6 @@ namespace MidiJack
             }
 
             // Process the message queue.
-            var incoming = false;
             while (true)
             {
                 // Pop from the queue.
@@ -200,11 +230,10 @@ namespace MidiJack
                 }
 
                 #if UNITY_EDITOR
-                // Record the message history.
+                // Record the message.
+                _totalMessageCount++;
                 _messageHistory.Enqueue(message);
                 #endif
-
-                incoming = true;
             }
 
             #if UNITY_EDITOR
@@ -212,8 +241,6 @@ namespace MidiJack
             while (_messageHistory.Count > 8)
                 _messageHistory.Dequeue();
             #endif
-
-            return incoming;
         }
 
         #endregion
