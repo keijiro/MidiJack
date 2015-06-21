@@ -3,6 +3,8 @@ MIDI Jack
 
 MIDI Jack is a MIDI input plugin for Unity.
 
+![sample](http://keijiro.github.io/MidiJack/sample.gif)
+
 System Requirements
 -------------------
 
@@ -43,6 +45,16 @@ the mixed status of all available channels.
 - MidiMaster.GetKnobNumbers (channel)
 
   Returns the list of active controllers.
+
+MIDI Monitor Window
+-------------------
+
+MIDI Jack provides the Monitor window which shows the list of available
+devices and incoming MIDI messages.
+
+![monitor](http://keijiro.github.io/MidiJack/monitor.png)
+
+This Monitor window is avilable from the menu Window -> MIDI Jack.
 
 Current Limitations
 -------------------
