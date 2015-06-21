@@ -1,125 +1,151 @@
-// MidiJack plug-in entry point.
-// By Keijiro Takahashi, 2013
-// https://github.com/keijiro/MidiJack
-
 #include <CoreMIDI/CoreMIDI.h>
+#include <cstdlib>
+#include <string>
 #include <queue>
 #include <mutex>
+#include <vector>
 
 #pragma mark Private classes
 
 namespace
 {
-    // MIDI message structure.
-    union Message
+    // MIDI message storage class
+    class MidiMessage
     {
-        uint64_t uint64Value;
+        MIDIUniqueID source_;
+        uint8_t status_;
+        uint8_t data_[2];
         
-        struct
-        {
-            MIDIUniqueID source;
-            Byte status;
-            Byte data[2];
-        };
+    public:
         
-        Message(MIDIUniqueID aSource, Byte aStatus)
-        :   source(aSource), status(aStatus)
+        MidiMessage(MIDIUniqueID source, uint8_t status)
+        : source_(source), status_(status)
         {
-            data[0] = data[1] = 0;
+            data_[0] = data_[1] = 0;
+        }
+        
+        void SetData(int offs, uint8_t byte)
+        {
+            if (offs < 2) data_[offs] = byte;
+        }
+        
+        uint64_t Encode64Bit() const
+        {
+            uint64_t ul = (uint32_t)source_;
+            ul |= (uint64_t)status_ << 32;
+            ul |= (uint64_t)data_[0] << 40;
+            ul |= (uint64_t)data_[1] << 48;
+            return ul;
         }
     };
     
-    static_assert(sizeof(Message) == sizeof(uint64_t), "Wrong data size.");
-
-    // MIDI source ID array.
-    MIDIUniqueID sourceIDs[256];
-
-    // Incoming MIDI message queue.
-    std::queue<Message> messageQueue;
-    std::mutex messageQueueLock;
-
-    // Core MIDI objects.
-    MIDIClientRef client;
-    MIDIPortRef inputPort;
+    // MIDI source ID array
+    std::vector<MIDIUniqueID> source_ids;
     
-    // Reset-is-required flag.
-    bool resetIsRequired = true;
+    // Incoming MIDI message queue
+    std::queue<MidiMessage> message_queue;
+    std::mutex message_queue_lock;
+    
+    // Core MIDI objects
+    MIDIClientRef midi_client;
+    MIDIPortRef midi_port;
+    
+    // Reset-is-required flag
+    bool reset_required = true;
 }
 
-#pragma mark Core MIDI callback function
+#pragma mark Core MIDI callbacks
 
 namespace
 {
     extern "C" void MIDIStateChangedHander(const MIDINotification* message, void* refCon)
     {
-        // Only process additions and removals.
-        if (message->messageID != kMIDIMsgObjectAdded && message->messageID != kMIDIMsgObjectRemoved) return;
-        
-        // Only process source operations.
-        auto addRemoveDetail = reinterpret_cast<const MIDIObjectAddRemoveNotification*>(message);
-        if (addRemoveDetail->childType != kMIDIObjectType_Source) return;
-        
-        // Order to reset the plug-in.
-        resetIsRequired = true;
+        // Reset if somthing has changed.
+        if (message->messageID == kMIDIMsgSetupChanged) reset_required = true;
     }
     
     extern "C" void MIDIReadProc(const MIDIPacketList *packetList, void *readProcRefCon, void *srcConnRefCon)
     {
-        auto sourceID = *reinterpret_cast<MIDIUniqueID*>(srcConnRefCon);
+        auto source_id = static_cast<MIDIUniqueID>(reinterpret_cast<intptr_t>(srcConnRefCon));
         
-        messageQueueLock.lock();
+        message_queue_lock.lock();
         
         // Transform the packets into MIDI messages and push it to the message queue.
         const MIDIPacket *packet = &packetList->packet[0];
         for (int packetCount = 0; packetCount < packetList->numPackets; packetCount++) {
             // Extract MIDI messages from the data stream.
             for (int offs = 0; offs < packet->length;) {
-                Message message(sourceID, packet->data[offs++]);
-                for (int dc = 0; offs < packet->length && (packet->data[offs] < 0x80); dc++, offs++) {
-                    if (dc < 2) message.data[dc] = packet->data[offs];
-                }
-                messageQueue.push(message);
+                MidiMessage message(source_id, packet->data[offs++]);
+                for (int dc = 0; offs < packet->length && (packet->data[offs] < 0x80); dc++, offs++)
+                    message.SetData(dc, packet->data[offs]);
+                message_queue.push(message);
             }
             packet = MIDIPacketNext(packet);
         }
         
-        messageQueueLock.unlock();
+        message_queue_lock.unlock();
     }
 }
 
 #pragma mark Private functions
-    
+
 namespace
 {
-    void ResetPluginIfRequired()
+    // Reset the status if required.
+    // Returns false when something goes wrong.
+    bool ResetIfRequired()
     {
-        if (!resetIsRequired) return;
+        if (!reset_required) return true;
         
         // Dispose the old MIDI client if exists.
-        if (client != 0) MIDIClientDispose(client);
-        
-        // Clear the message queue.
-        std::queue<Message> emptyQueue;
-        std::swap(messageQueue, emptyQueue);
+        if (midi_client != 0) MIDIClientDispose(midi_client);
         
         // Create a MIDI client.
-        MIDIClientCreate(CFSTR("UnityMIDIReceiver Client"), MIDIStateChangedHander, nullptr, &client);
+        if (MIDIClientCreate(CFSTR("UnityMIDIReceiver Client"), MIDIStateChangedHander, NULL, &midi_client) != noErr) return false;
         
-        // Create a MIDI port which covers all MIDI sources.
-        MIDIInputPortCreate(client, CFSTR("UnityMIDIReceiver Input Port"), MIDIReadProc, nullptr, &inputPort);
+        // Create a MIDI port which covers all the MIDI sources.
+        if (MIDIInputPortCreate(midi_client, CFSTR("UnityMIDIReceiver Input Port"), MIDIReadProc, NULL, &midi_port) != noErr) return false;
         
         // Enumerate the all MIDI sources.
         ItemCount sourceCount = MIDIGetNumberOfSources();
-        assert(sourceCount < sizeof(sourceIDs));
+        source_ids.resize(sourceCount);
         
-        for (int i = 0; i < sourceCount; i++) {
-            // Connect the MIDI source to the input port.
+        for (int i = 0; i < sourceCount; i++)
+        {
             MIDIEndpointRef source = MIDIGetSource(i);
-            MIDIObjectGetIntegerProperty(source, kMIDIPropertyUniqueID, &sourceIDs[i]);
-            MIDIPortConnectSource(inputPort, source, &sourceIDs[i]);
+            if (source == 0) return false;
+            
+            // Retrieve the ID of the source.
+            SInt32 id;
+            if (MIDIObjectGetIntegerProperty(source, kMIDIPropertyUniqueID, &id) != noErr) return false;
+            source_ids.at(i) = id;
+            
+            // Connect the MIDI source to the input port.
+            if (MIDIPortConnectSource(midi_port, source, reinterpret_cast<void*>(id)) != noErr) return false;
         }
         
-        resetIsRequired = false;
+        reset_required = false;
+        return true;
+    }
+    
+    // Retrieve the name of a given source.
+    std::string GetSourceName(uint32_t source_id)
+    {
+        static const char* default_name = "(not ready)";
+        
+        MIDIObjectRef object;
+        MIDIObjectType type;
+        if (MIDIObjectFindByUniqueID(source_id, &object, &type) != noErr) return default_name;
+        
+        if (type != kMIDIObjectType_Source) return default_name;
+        
+        CFStringRef name;
+        if (MIDIObjectGetStringProperty(object, kMIDIPropertyDisplayName, &name) != noErr) return default_name;
+        
+        char buffer[256];
+        CFStringGetCString(name, buffer, sizeof(buffer), kCFStringEncodingUTF8);
+        
+        return buffer;
     }
 }
 
@@ -128,46 +154,36 @@ namespace
 // Counts the number of endpoints.
 extern "C" int MidiJackCountEndpoints()
 {
-    ResetPluginIfRequired();
-    return static_cast<int>(MIDIGetNumberOfSources());
+    if (!ResetIfRequired()) return 0;
+    return static_cast<int>(source_ids.size());
 }
 
 // Get the unique ID of an endpoint.
 extern "C" uint32_t MidiJackGetEndpointIDAtIndex(int index)
 {
-    return sourceIDs[index];
+    if (!ResetIfRequired()) return 0;
+    if (index < 0 || index >= source_ids.size()) return 0;
+    return source_ids[index];
 }
 
 // Get the name of an endpoint.
 extern "C" const char* MidiJackGetEndpointName(uint32_t id)
 {
-    ResetPluginIfRequired();
-
-    MIDIObjectRef object;
-    MIDIObjectType type;
-    MIDIObjectFindByUniqueID(id, &object, &type);
-    assert(type == kMIDIObjectType_Source);
-    
-    CFStringRef name;
-    MIDIObjectGetStringProperty(object, kMIDIPropertyDisplayName, &name);
-    
-    static char buffer[256];
-    CFStringGetCString(name, buffer, sizeof(buffer), kCFStringEncodingUTF8);
-    
-    return buffer;
+    if (!ResetIfRequired()) return "(not ready)";
+    static std::string temp;
+    temp = GetSourceName(id);
+    return temp.c_str();
 }
 
 // Retrieve and erase an MIDI message data from the message queue.
 extern "C" uint64_t MidiJackDequeueIncomingData()
 {
-    ResetPluginIfRequired();
-
-    if (messageQueue.empty()) return 0;
+    if (!ResetIfRequired() || message_queue.empty()) return 0;
     
-    messageQueueLock.lock();
-    Message m = messageQueue.front();
-    messageQueue.pop();
-    messageQueueLock.unlock();
+    message_queue_lock.lock();
+    auto m = message_queue.front();
+    message_queue.pop();
+    message_queue_lock.unlock();
     
-    return m.uint64Value;
+    return m.Encode64Bit();
 }
