@@ -14,7 +14,11 @@ System Requirements
 Installation
 ------------
 
-Download and import MidiJack.unitypackage into your project. That’s it!
+Download and import [MidiJack.unitypackage][unitypackage] into your project.
+That’s it!
+
+[unitypackage]:
+  https://github.com/keijiro/MidiJack/raw/unity5/MidiJack.unitypackage
 
 API Reference
 -------------
