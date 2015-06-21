@@ -23,16 +23,17 @@ That’s it!
 API Reference
 -------------
 
-The basic functions of MIDI jack are provided in the MidiMaster class.
+The basic functions of MIDI Jack are provided in the MidiMaster class.
 
-The *channel* arguments in the following functions can be omitted.
-In that case, it returns the value from the All-Channel slot, which stores
-the mixed status of all available channels.
+The channel arguments in the following functions can be omitted.
+In that case, it returns the value in the All-Channel slot, which stores
+mixed status of all active channels.
 
 - MidiMaster.GetKey (channel, noteNumber)
   
-  Returns the ststate of a key. If the key is "on", it returns the velocity
-  value (more than zero, up to 1.0). If the key is "off", it returns zero.
+  Returns the velocity value while the key is pressed, or zero while the
+  key is released. The value ranges from 0.0 (note-off) to 1.0 (maximum
+  velocity).
 
 - MidiMaster.GetKeyDown (channel, noteNumber)
 
@@ -44,7 +45,7 @@ the mixed status of all available channels.
 
 - MidiMaster.GetKnob (channel, knobNumber, defaultValue)
 
-  Returns the controller value (CC). The value range is 0.0 to 1.0.
+  Returns the controller value (CC). The value ranges from 0.0 to 1.0.
 
 - MidiMaster.GetKnobNumbers (channel)
 
@@ -53,18 +54,19 @@ the mixed status of all available channels.
 MIDI Monitor Window
 -------------------
 
-MIDI Jack provides the Monitor window which shows the list of available
-devices and incoming MIDI messages.
+MIDI Jack provides the MIDI Monitor window, which shows the list of
+active devices and incoming MIDI messages.
 
 ![monitor](http://keijiro.github.io/MidiJack/monitor.png)
 
-This Monitor window is avilable from the menu Window -> MIDI Jack.
+The MIDI Monitor window is avilable from the menu Window -> MIDI Jack.
 
 Current Limitations
 -------------------
 
 - Currently MIDI Jack only supports Windows and OS X. No iOS support yet.
-- Only supports MIDI in. No MIDI out support yet.
+- Only supports note and CC messages. No support for program changes nor
+  SysEx.
 - The MIDI Jack plugin always tries to capture all available MIDI devices.
   On Windows this behavior may conflict with other MIDI applications.
 
