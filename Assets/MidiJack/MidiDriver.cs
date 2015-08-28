@@ -43,10 +43,14 @@ namespace MidiJack
             // Knob number to knob value mapping
             public Dictionary<int, float> _knobMap;
 
+            // Pitch bend value
+            public float _pitchBend;
+
             public ChannelState()
             {
                 _noteArray = new float[128];
                 _knobMap = new Dictionary<int, float>();
+                _pitchBend = 0.0f;
             }
         }
 
@@ -96,6 +100,13 @@ namespace MidiJack
             var cs = _channelArray[(int)channel];
             if (cs._knobMap.ContainsKey(knobNumber)) return cs._knobMap[knobNumber];
             return defaultValue;
+        }
+
+        public float GetPitchBend(MidiChannel channel)
+        {
+            UpdateIfNeeded();
+            var cs = _channelArray[(int)channel]._pitchBend;
+            return cs;
         }
 
         #endregion
@@ -227,6 +238,23 @@ namespace MidiJack
                     _channelArray[channelNumber]._knobMap[message.data1] = level;
                     // Do again for All-ch.
                     _channelArray[(int)MidiChannel.All]._knobMap[message.data1] = level;
+                }
+
+                // Pitch bend message?
+                if (statusCode == 0xe)
+                {
+                    // Pitch bend is measured by a fourteen bit value. Center (no pitch change) is 0x2000
+                    if (message.data1 == 0x7f && message.data2 == 0x7f)
+                    {
+                        _channelArray[channelNumber]._pitchBend = 1.0f;
+                        _channelArray[(int)MidiChannel.All]._pitchBend = 1.0f;
+                    }
+                    else
+                    {
+                        var value = 1.0f / 8192 * (message.data2 + (message.data1 << 7)) - 1;
+                        _channelArray[channelNumber]._pitchBend = value;
+                        _channelArray[(int)MidiChannel.All]._pitchBend = value;
+                    }
                 }
 
                 #if UNITY_EDITOR

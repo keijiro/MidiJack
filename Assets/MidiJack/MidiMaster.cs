@@ -78,5 +78,16 @@ namespace MidiJack
         {
             return MidiDriver.Instance.GetKnob(MidiChannel.All, knobNumber, defaultValue);
         }
+
+        // Returns the PitchBend value.
+        public static float GetPitchBend(MidiChannel channel)
+        {
+            return MidiDriver.Instance.GetPitchBend(channel);
+        }
+
+        public static float GetPitchBend()
+        {
+            return MidiDriver.Instance.GetPitchBend(MidiChannel.All);
+        }
     }
 }
