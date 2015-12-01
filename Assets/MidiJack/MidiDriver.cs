@@ -98,6 +98,13 @@ namespace MidiJack
             return defaultValue;
         }
 
+		public int GetNoteNumber()
+		{
+			var data = DequeueIncomingData();
+			var message = new MidiMessage(data);
+			return message.NoteNumber();
+		}
+
         #endregion
 
         #region Editor Support
