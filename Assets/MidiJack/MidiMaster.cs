@@ -78,5 +78,10 @@ namespace MidiJack
         {
             return MidiDriver.Instance.GetKnob(MidiChannel.All, knobNumber, defaultValue);
         }
+
+		public static int GetNoteNumber()
+		{
+			return MidiDriver.Instance.GetNoteNumber();
+		}
     }
 }
