@@ -62,13 +62,13 @@ namespace MidiJack
 
         public override string ToString()
         {
-            string fmt = "s({0:X2}) d({1:X2},{2:X2}) from {3:X8}";
+            const string fmt = "s({0:X2}) d({1:X2},{2:X2}) from {3:X8}";
             return string.Format(fmt, status, data1, data2, source);
         }
 
-		public int NoteNumber(){
-			string fmt = "{0:X2}";
-			return System.Int32.Parse( string.Format(fmt, data1), System.Globalization.NumberStyles.AllowHexSpecifier );
-		}
+	public int NoteNumber(){
+		const string fmt = "{0:X2}";
+		return System.Int32.Parse( string.Format(fmt, data1), System.Globalization.NumberStyles.AllowHexSpecifier );
+	}
     }
 }
