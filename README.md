@@ -51,6 +51,12 @@ mixed status of all active channels.
 
   Returns the list of active controllers.
 
+There are also delegates for the each type of MIDI event.
+
+- MidiMaster.keyOnDelegate (channel, noteNumber, velocity)
+- MidiMaster.keyOffDelegate (channel, noteNumber)
+- MidiMaster.knobDelegate (channel, knobNumber, konbValue)
+
 MIDI Monitor Window
 -------------------
 
