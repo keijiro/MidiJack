@@ -25,6 +25,22 @@ namespace MidiJack
 {
     public static class MidiMaster
     {
+        // MIDI event delegates
+        public static MidiDriver.KeyOnDelegate keyOnDelegate {
+            get { return MidiDriver.Instance.keyOnDelegate; }
+            set { MidiDriver.Instance.keyOnDelegate = value; }
+        }
+
+        public static MidiDriver.KeyOffDelegate keyOffDelegate {
+            get { return MidiDriver.Instance.keyOffDelegate; }
+            set { MidiDriver.Instance.keyOffDelegate = value; }
+        }
+
+        public static MidiDriver.KnobDelegate knobDelegate {
+            get { return MidiDriver.Instance.knobDelegate; }
+            set { MidiDriver.Instance.knobDelegate = value; }
+        }
+
         // Returns the key state (on: velocity, off: zero).
         public static float GetKey(MidiChannel channel, int noteNumber)
         {

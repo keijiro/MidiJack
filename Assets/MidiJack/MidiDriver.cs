@@ -101,6 +101,18 @@ namespace MidiJack
 
         #endregion
 
+        #region Event Delegates
+
+        public delegate void KeyOnDelegate(MidiChannel channel, int note, float velocity);
+        public delegate void KeyOffDelegate(MidiChannel channel, int note);
+        public delegate void KnobDelegate(MidiChannel channel, int knobNumber, float knobValue);
+
+        public KeyOnDelegate keyOnDelegate { get; set; }
+        public KeyOffDelegate keyOffDelegate { get; set; }
+        public KnobDelegate knobDelegate { get; set; }
+
+        #endregion
+
         #region Editor Support
 
         #if UNITY_EDITOR
@@ -210,6 +222,8 @@ namespace MidiJack
                     var velocity = 1.0f / 127 * message.data2 + 1;
                     _channelArray[channelNumber]._noteArray[message.data1] = velocity;
                     _channelArray[(int)MidiChannel.All]._noteArray[message.data1] = velocity;
+                    if (keyOnDelegate != null)
+                        keyOnDelegate((MidiChannel)channelNumber, message.data1, velocity - 1);
                 }
 
                 // Note off message?
@@ -217,6 +231,8 @@ namespace MidiJack
                 {
                     _channelArray[channelNumber]._noteArray[message.data1] = -1;
                     _channelArray[(int)MidiChannel.All]._noteArray[message.data1] = -1;
+                    if (keyOffDelegate != null)
+                        keyOffDelegate((MidiChannel)channelNumber, message.data1);
                 }
 
                 // CC message?
@@ -228,6 +244,8 @@ namespace MidiJack
                     _channelArray[channelNumber]._knobMap[message.data1] = level;
                     // Do again for All-ch.
                     _channelArray[(int)MidiChannel.All]._knobMap[message.data1] = level;
+                    if (knobDelegate != null)
+                        knobDelegate((MidiChannel)channelNumber, message.data1, level);
                 }
 
                 #if UNITY_EDITOR
@@ -259,8 +277,12 @@ namespace MidiJack
 
         public static MidiDriver Instance {
             get {
-                if (_instance == null)
+                if (_instance == null) {
                     _instance = new MidiDriver();
+                    if (Application.isPlaying)
+                        MidiStateUpdater.CreateGameObject(
+                            new MidiStateUpdater.Callback(_instance.Update));
+                }
                 return _instance;
             }
         }
