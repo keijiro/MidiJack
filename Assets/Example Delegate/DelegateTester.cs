@@ -3,14 +3,14 @@ using MidiJack;
 
 public class DelegateTester : MonoBehaviour
 {
-    void KeyOn(MidiChannel channel, int note, float velocity)
+    void NoteOn(MidiChannel channel, int note, float velocity)
     {
-        Debug.Log("KeyOn: " + channel + "," + note + "," + velocity);
+        Debug.Log("NoteOn: " + channel + "," + note + "," + velocity);
     }
 
-    void KeyOff(MidiChannel channel, int note)
+    void NoteOff(MidiChannel channel, int note)
     {
-        Debug.Log("KeyOff: " + channel + "," + note);
+        Debug.Log("NoteOff: " + channel + "," + note);
     }
 
     void Knob(MidiChannel channel, int knobNumber, float knobValue)
@@ -20,15 +20,15 @@ public class DelegateTester : MonoBehaviour
 
     void OnEnable()
     {
-        MidiMaster.keyOnDelegate += KeyOn;
-        MidiMaster.keyOffDelegate += KeyOff;
+        MidiMaster.noteOnDelegate += NoteOn;
+        MidiMaster.noteOffDelegate += NoteOff;
         MidiMaster.knobDelegate += Knob;
     }
 
     void OnDisable()
     {
-        MidiMaster.keyOnDelegate -= KeyOn;
-        MidiMaster.keyOffDelegate -= KeyOff;
+        MidiMaster.noteOnDelegate -= NoteOn;
+        MidiMaster.noteOffDelegate -= NoteOff;
         MidiMaster.knobDelegate -= Knob;
     }
 }

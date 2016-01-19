@@ -103,12 +103,12 @@ namespace MidiJack
 
         #region Event Delegates
 
-        public delegate void KeyOnDelegate(MidiChannel channel, int note, float velocity);
-        public delegate void KeyOffDelegate(MidiChannel channel, int note);
+        public delegate void NoteOnDelegate(MidiChannel channel, int note, float velocity);
+        public delegate void NoteOffDelegate(MidiChannel channel, int note);
         public delegate void KnobDelegate(MidiChannel channel, int knobNumber, float knobValue);
 
-        public KeyOnDelegate keyOnDelegate { get; set; }
-        public KeyOffDelegate keyOffDelegate { get; set; }
+        public NoteOnDelegate noteOnDelegate { get; set; }
+        public NoteOffDelegate noteOffDelegate { get; set; }
         public KnobDelegate knobDelegate { get; set; }
 
         #endregion
@@ -222,8 +222,8 @@ namespace MidiJack
                     var velocity = 1.0f / 127 * message.data2 + 1;
                     _channelArray[channelNumber]._noteArray[message.data1] = velocity;
                     _channelArray[(int)MidiChannel.All]._noteArray[message.data1] = velocity;
-                    if (keyOnDelegate != null)
-                        keyOnDelegate((MidiChannel)channelNumber, message.data1, velocity - 1);
+                    if (noteOnDelegate != null)
+                        noteOnDelegate((MidiChannel)channelNumber, message.data1, velocity - 1);
                 }
 
                 // Note off message?
@@ -231,8 +231,8 @@ namespace MidiJack
                 {
                     _channelArray[channelNumber]._noteArray[message.data1] = -1;
                     _channelArray[(int)MidiChannel.All]._noteArray[message.data1] = -1;
-                    if (keyOffDelegate != null)
-                        keyOffDelegate((MidiChannel)channelNumber, message.data1);
+                    if (noteOffDelegate != null)
+                        noteOffDelegate((MidiChannel)channelNumber, message.data1);
                 }
 
                 // CC message?
