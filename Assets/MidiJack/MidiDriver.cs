@@ -156,6 +156,10 @@ namespace MidiJack
 
         MidiDriver()
         {
+            #if WIN32
+            RefreshMIDIDevices();
+            #endif
+
             _channelArray = new ChannelState[17];
             for (var i = 0; i < 17; i++)
                 _channelArray[i] = new ChannelState();
@@ -268,6 +272,9 @@ namespace MidiJack
 
         [DllImport("MidiJackPlugin", EntryPoint="MidiJackDequeueIncomingData")]
         public static extern ulong DequeueIncomingData();
+
+        [DllImport("MidiJackPlugin", EntryPoint = "MidiJackRefreshDevices")]
+        public static extern ulong RefreshMIDIDevices();
 
         #endregion
 
