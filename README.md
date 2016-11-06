@@ -17,8 +17,12 @@ Installation
 Download and import [MidiJack.unitypackage][unitypackage] into your project.
 That’s it!
 
+See [the troubleshooting topics][troubleshooting] if you meet any problem.
+
 [unitypackage]:
   https://github.com/keijiro/MidiJack/raw/unity5/MidiJack.unitypackage
+[troubleshooting]:
+  https://github.com/keijiro/MidiJack/wiki/Troubleshooting
 
 API Reference
 -------------
