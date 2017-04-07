@@ -83,13 +83,13 @@ namespace MidiJack
 
         #region Native Plugin Interface
 
-        [DllImport("MidiJackPlugin", EntryPoint="MidiJackCountEndpoints")]
+        [DllImport(PluginImportName.Platform, EntryPoint="MidiJackCountEndpoints")]
         static extern int CountEndpoints();
 
-        [DllImport("MidiJackPlugin", EntryPoint="MidiJackGetEndpointIDAtIndex")]
+        [DllImport(PluginImportName.Platform, EntryPoint="MidiJackGetEndpointIDAtIndex")]
         static extern uint GetEndpointIdAtIndex(int index);
 
-        [DllImport("MidiJackPlugin")]
+        [DllImport(PluginImportName.Platform)]
         static extern System.IntPtr MidiJackGetEndpointName(uint id);
 
         static string GetEndpointName(uint id) {

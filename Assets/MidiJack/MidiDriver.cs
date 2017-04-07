@@ -27,6 +27,17 @@ using System.Runtime.InteropServices;
 
 namespace MidiJack
 {
+    public static class PluginImportName 
+    {
+        public const string Platform = 
+		#if UNITY_IPHONE || UNITY_XBOX360
+		"__Internal"
+		#else
+		"MidiJackPlugin"
+		#endif
+        ;
+    }
+    
     public class MidiDriver
     {
         #region Internal Data
@@ -266,7 +277,7 @@ namespace MidiJack
 
         #region Native Plugin Interface
 
-        [DllImport("MidiJackPlugin", EntryPoint="MidiJackDequeueIncomingData")]
+        [DllImport(PluginImportName.Platform, EntryPoint="MidiJackDequeueIncomingData")]
         public static extern ulong DequeueIncomingData();
 
         #endregion
