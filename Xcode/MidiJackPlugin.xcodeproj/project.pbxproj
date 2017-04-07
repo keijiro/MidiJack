@@ -11,7 +11,24 @@
 		0F1D60E318571E9900AACF58 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0F1D60E118571E9900AACF58 /* InfoPlist.strings */; };
 		0F1D60EB18571EE000AACF58 /* PluginEntry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0F1D60EA18571EE000AACF58 /* PluginEntry.cpp */; };
 		0F1D60EF1857203C00AACF58 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F1D60EE1857203C00AACF58 /* CoreMIDI.framework */; };
+		41C642D21E97AD52007BA068 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 41C642D11E97AD52007BA068 /* CoreMIDI.framework */; };
+		41C642D41E97AD97007BA068 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 41C642D31E97AD97007BA068 /* CoreFoundation.framework */; };
+		41C642D51E97ADA5007BA068 /* PluginEntry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0F1D60EA18571EE000AACF58 /* PluginEntry.cpp */; };
+		41C642D61E97AE0F007BA068 /* PluginEntry.cpp in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0F1D60EA18571EE000AACF58 /* PluginEntry.cpp */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		41C642C61E97AC60007BA068 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+				41C642D61E97AE0F007BA068 /* PluginEntry.cpp in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0F1D60D918571E9900AACF58 /* MidiJackPlugin.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MidiJackPlugin.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -22,6 +39,9 @@
 		0F1D60EA18571EE000AACF58 /* PluginEntry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PluginEntry.cpp; sourceTree = "<group>"; };
 		0F1D60EC18571F2800AACF58 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		0F1D60EE1857203C00AACF58 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
+		41C642C81E97AC60007BA068 /* libMidiJackPluginiOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libMidiJackPluginiOS.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		41C642D11E97AD52007BA068 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk/System/Library/Frameworks/CoreMIDI.framework; sourceTree = DEVELOPER_DIR; };
+		41C642D31E97AD97007BA068 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk/System/Library/Frameworks/CoreFoundation.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,6 +51,15 @@
 			files = (
 				0F1D60EF1857203C00AACF58 /* CoreMIDI.framework in Frameworks */,
 				0F1D60DD18571E9900AACF58 /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41C642C51E97AC60007BA068 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				41C642D41E97AD97007BA068 /* CoreFoundation.framework in Frameworks */,
+				41C642D21E97AD52007BA068 /* CoreMIDI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -50,6 +79,7 @@
 			isa = PBXGroup;
 			children = (
 				0F1D60D918571E9900AACF58 /* MidiJackPlugin.bundle */,
+				41C642C81E97AC60007BA068 /* libMidiJackPluginiOS.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -57,6 +87,8 @@
 		0F1D60DB18571E9900AACF58 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				41C642D31E97AD97007BA068 /* CoreFoundation.framework */,
+				41C642D11E97AD52007BA068 /* CoreMIDI.framework */,
 				0F1D60EE1857203C00AACF58 /* CoreMIDI.framework */,
 				0F1D60DC18571E9900AACF58 /* CoreFoundation.framework */,
 			);
@@ -103,6 +135,23 @@
 			productReference = 0F1D60D918571E9900AACF58 /* MidiJackPlugin.bundle */;
 			productType = "com.apple.product-type.bundle";
 		};
+		41C642C71E97AC60007BA068 /* MidiJackPluginiOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 41C642D01E97AC60007BA068 /* Build configuration list for PBXNativeTarget "MidiJackPluginiOS" */;
+			buildPhases = (
+				41C642C41E97AC60007BA068 /* Sources */,
+				41C642C51E97AC60007BA068 /* Frameworks */,
+				41C642C61E97AC60007BA068 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MidiJackPluginiOS;
+			productName = MidiJackiOS;
+			productReference = 41C642C81E97AC60007BA068 /* libMidiJackPluginiOS.a */;
+			productType = "com.apple.product-type.library.static";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -111,6 +160,13 @@
 			attributes = {
 				LastUpgradeCheck = 0630;
 				ORGANIZATIONNAME = "Keijiro Takahashi";
+				TargetAttributes = {
+					41C642C71E97AC60007BA068 = {
+						CreatedOnToolsVersion = 8.3.1;
+						DevelopmentTeam = 542RPQW8G6;
+						ProvisioningStyle = Automatic;
+					};
+				};
 			};
 			buildConfigurationList = 0F1D60D418571E9900AACF58 /* Build configuration list for PBXProject "MidiJackPlugin" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -125,6 +181,7 @@
 			projectRoot = "";
 			targets = (
 				0F1D60D818571E9900AACF58 /* MidiJackPlugin */,
+				41C642C71E97AC60007BA068 /* MidiJackPluginiOS */,
 			);
 		};
 /* End PBXProject section */
@@ -146,6 +203,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				0F1D60EB18571EE000AACF58 /* PluginEntry.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41C642C41E97AC60007BA068 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				41C642D51E97ADA5007BA068 /* PluginEntry.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -195,6 +260,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -228,6 +294,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SDKROOT = macosx;
 			};
@@ -259,6 +326,58 @@
 			};
 			name = Release;
 		};
+		41C642CE1E97AC60007BA068 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 542RPQW8G6;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		41C642CF1E97AC60007BA068 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEVELOPMENT_TEAM = 542RPQW8G6;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -279,6 +398,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		41C642D01E97AC60007BA068 /* Build configuration list for PBXNativeTarget "MidiJackPluginiOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				41C642CE1E97AC60007BA068 /* Debug */,
+				41C642CF1E97AC60007BA068 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};
