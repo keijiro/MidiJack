@@ -24,3 +24,6 @@ ipch/
 *.lnk
 .DS_Store
 Thumbs.db
+*.csproj
+MomoMidiJack.sln
+*.idea/
