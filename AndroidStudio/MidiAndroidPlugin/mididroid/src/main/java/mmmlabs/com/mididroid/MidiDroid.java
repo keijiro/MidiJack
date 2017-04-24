@@ -49,6 +49,7 @@ public class MidiDroid extends Fragment {
     }
 
     public void findADevice(){
+        foundDevice = false;
         String[] devices = getDevices();
         for (int i = 0; i < devices.length; i++){
             openDeviceAtIndex(i);
