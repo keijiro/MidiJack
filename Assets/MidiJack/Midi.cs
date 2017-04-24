@@ -61,6 +61,14 @@ namespace MidiJack
             data2 = (byte)((data >> 48) & 0xff);
         }
 
+        public MidiMessage(uint source, byte status, byte data1, byte data2)
+        {
+            this.source = source;
+            this.status = status;
+            this.data1 = data1;
+            this.data2 = data2;
+        }
+
         public override string ToString()
         {
             const string fmt = "s({0:X2}) d({1:X2},{2:X2}) from {3:X8}";
