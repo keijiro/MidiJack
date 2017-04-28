@@ -9,7 +9,7 @@ System Requirements
 -------------------
 
 - Unity 5
-- Windows or Mac OS X
+- Windows, Mac OS X or Android 6+
 
 Installation
 ------------
@@ -74,16 +74,17 @@ The MIDI Monitor window is avilable from the menu Window -> MIDI Jack.
 Current Limitations
 -------------------
 
-- Currently MIDI Jack only supports Windows and OS X. No iOS support yet.
+- Currently MIDI Jack only supports Windows, OS X and Android. No iOS support yet.
 - Only supports note and CC messages. No support for program changes nor
   SysEx.
-- The MIDI Jack plugin always tries to capture all available MIDI devices.
+- The MIDI Jack plugin always tries to capture all available MIDI devices on Windows and OS X.
   On Windows this behavior may conflict with other MIDI applications.
+  On Android, it will cycle through available MIDI devices until it succeeds in opening one or runs out of devices.
 
 License
 -------
 
-Copyright (C) 2013-2015 Keijiro Takahashi
+Copyright (C) 2013-2017 Keijiro Takahashi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
