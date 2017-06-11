@@ -205,6 +205,10 @@ namespace MidiJack
             // Process the message queue.
             while (true)
             {
+                // Send MIDI data
+                DequeueSendData();
+
+                // Receiving process
                 // Pop from the queue.
                 var data = DequeueIncomingData();
                 if (data == 0) break;
@@ -268,6 +272,9 @@ namespace MidiJack
 
         [DllImport("MidiJackPlugin", EntryPoint="MidiJackDequeueIncomingData")]
         public static extern ulong DequeueIncomingData();
+
+        [DllImport("MidiJackPlugin", EntryPoint="MidiJackDequeueSendData")]
+        public static extern int DequeueSendData();
 
         #endregion
 

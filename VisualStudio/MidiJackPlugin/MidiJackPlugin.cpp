@@ -205,3 +205,8 @@ EXPORT_API uint64_t MidiJackDequeueIncomingData()
 
     return msg.Encode64Bit();
 }
+
+// Send MIDI message
+EXPORT_API uint32_t MidiJackDequeueSendData() {
+	return 0;
+}
