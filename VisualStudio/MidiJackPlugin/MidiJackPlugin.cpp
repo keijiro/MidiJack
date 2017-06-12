@@ -4,6 +4,7 @@ namespace
 {
     // Basic type aliases
     using DeviceHandle = HMIDIIN;
+	using DeviceHandleSend = HMIDIOUT;
     using DeviceID = uint32_t;
 
     // Utility functions for Win32/64 compatibility
@@ -12,10 +13,18 @@ namespace
     {
         return static_cast<DeviceID>(reinterpret_cast<uint64_t>(handle));
     }
+	DeviceID DeviceHandleToID(DeviceHandleSend handle)
+	{
+		return static_cast<DeviceID>(reinterpret_cast<uint64_t>(handle));
+	}
     DeviceHandle DeviceIDToHandle(DeviceID id)
     {
         return reinterpret_cast<DeviceHandle>(static_cast<uint64_t>(id));
     }
+	DeviceHandleSend DeviceIDToHandleSend(DeviceID id)
+	{
+		return reinterpret_cast<DeviceHandleSend>(static_cast<uint64_t>(id));
+	}
 #else
     DeviceID DeviceHandleToID(DeviceHandle handle)
     {
@@ -66,8 +75,13 @@ namespace
     std::list<DeviceHandle> active_handles;
     std::stack<DeviceHandle> handles_to_close;
 
+	std::list<DeviceHandleSend> active_handles_send;
+	std::stack<DeviceHandleSend> handles_to_close_send;
+
+
     // Mutex for resources
     std::recursive_mutex resource_lock;
+	std::recursive_mutex resource_lock_send;
 
     // MIDI input callback
     static void CALLBACK MidiInProc(HMIDIIN hMidiIn, UINT wMsg, DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2)
@@ -100,8 +114,19 @@ namespace
         return "unknown";
     }
 
-    // Open a MIDI device with a given index.
-    void OpenDevice(unsigned int index)
+	std::string GetDeviceName(DeviceHandleSend handle)
+	{
+		auto casted_id = reinterpret_cast<UINT_PTR>(handle);
+		MIDIOUTCAPS caps;
+		if (midiOutGetDevCaps(casted_id, &caps, sizeof(caps)) == MMSYSERR_NOERROR) {
+			std::wstring name(caps.szPname);
+			return std::string(name.begin(), name.end());
+		}
+		return "unknown";
+	}
+
+    // Open a MIDI IN device with a given index.
+    void OpenMidiInDevice(unsigned int index)
     {
         static const DWORD_PTR callback = reinterpret_cast<DWORD_PTR>(MidiInProc);
         DeviceHandle handle;
@@ -120,6 +145,23 @@ namespace
         }
     }
 
+	// Open a MIDI OUT device with a given index.
+	void OpenMidiOutDevice(unsigned int index) {
+		DeviceHandleSend handle;
+		if (midiOutOpen(&handle, index, NULL, NULL, CALLBACK_NULL) == MMSYSERR_NOERROR)
+		{
+			active_handles_send.push_back(handle);
+		}
+		else {
+			midiOutClose(handle);
+		}
+
+		//midiOutShortMsg(handle, 0x0090637F);
+		//Sleep(1000);
+		//midiOutClose(handle);
+	}
+
+
     // Close a given handler.
     void CloseDevice(DeviceHandle handle)
     {
@@ -133,8 +175,11 @@ namespace
     // Open the all devices.
     void OpenAllDevices()
     {
-        int device_count = midiInGetNumDevs();
-        for (int i = 0; i < device_count; i++) OpenDevice(i);
+        int device_count_recv = midiInGetNumDevs();
+		int device_count_send = midiOutGetNumDevs();
+
+        for (int i = 0; i < device_count_recv; i++) OpenMidiInDevice(i);
+		for (int i = 0; i < device_count_send; i++) OpenMidiOutDevice(i);
     }
 
     // Refresh device handlers
@@ -168,13 +213,19 @@ namespace
 
 #define EXPORT_API extern "C" __declspec(dllexport)
 
-// Counts the number of endpoints.
+// Counts the number of MIDI IN endpoints.
 EXPORT_API int MidiJackCountEndpoints()
 {
     return static_cast<int>(active_handles.size());
 }
 
-// Get the unique ID of an endpoint.
+// Counts the number of MIDI OUT endpoints.
+EXPORT_API int MidiJackCountSendEndpoints()
+{
+	return static_cast<int>(active_handles_send.size());
+}
+
+// Get the unique ID of an MIDI IN endpoint.
 EXPORT_API uint32_t MidiJackGetEndpointIDAtIndex(int index)
 {
     auto itr = active_handles.begin();
@@ -182,13 +233,32 @@ EXPORT_API uint32_t MidiJackGetEndpointIDAtIndex(int index)
     return DeviceHandleToID(*itr);
 }
 
-// Get the name of an endpoint.
+// Get the unique ID of an MIDI OUT endpoint.
+EXPORT_API uint32_t MidiJackGetSendEndpointIDAtIndex(int index)
+{
+	auto itr = active_handles_send.begin();
+	std::advance(itr, index);
+	return DeviceHandleToID(*itr);
+}
+
+
+// Get the name of an MIDI IN endpoint.
 EXPORT_API const char* MidiJackGetEndpointName(uint32_t id)
 {
     auto handle = DeviceIDToHandle(id);
     static std::string buffer;
     buffer = GetDeviceName(handle);
     return buffer.c_str();
+}
+
+
+// Get the name of an MIDI OUT endpoint.
+EXPORT_API const char* MidiJackGetSendEndpointName(uint32_t id)
+{
+	auto handle = DeviceIDToHandleSend(id);
+	static std::string buffer;
+	buffer = GetDeviceName(handle);
+	return buffer.c_str();
 }
 
 // Retrieve and erase an MIDI message data from the message queue.
@@ -208,5 +278,7 @@ EXPORT_API uint64_t MidiJackDequeueIncomingData()
 
 // Send MIDI message
 EXPORT_API uint32_t MidiJackDequeueSendData() {
+	RefreshDevices();
+
 	return 0;
 }
