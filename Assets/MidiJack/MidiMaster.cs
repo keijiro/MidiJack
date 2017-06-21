@@ -95,5 +95,10 @@ namespace MidiJack
         {
             return MidiDriver.Instance.GetKnob(MidiChannel.All, knobNumber, defaultValue);
         }
+
+        public static void SendMessage(uint id, uint data)
+        {
+            MidiDriver.Instance.SendMessage(id, data);
+        }
     }
 }

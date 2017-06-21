@@ -99,6 +99,56 @@ namespace MidiJack
             return defaultValue;
         }
 
+        public void SendNoteOn(uint deviceID, MidiChannel channel, uint noteNumber, uint velocity)
+        {
+            uint message = 0x00900000; //0x0090637f
+            message |= ((uint)channel << 16)  & 0x000f0000;
+            message |= (noteNumber << 8) & 0x0000ff00;
+            message |= noteNumber & 0x000000ff;
+            SendData(deviceID, message);
+        }
+
+        public void SendNoteOff(uint deviceID, MidiChannel channel, uint noteNumber, uint velocity)
+        {
+            uint message = 0x00800000; //0x0090637f
+            message |= ((uint)channel << 16)  & 0x000f0000;
+            message |= (noteNumber << 8) & 0x0000ff00;
+            message |= noteNumber & 0x000000ff;
+            SendData(deviceID, message);
+        }
+
+        public void SendCC(uint deviceID, MidiChannel channel, uint ccNumber, uint velocity)
+        {
+            uint message = 0x00B00000;
+            message |= ((uint)channel << 16)  & 0x000f0000;
+            message |= (ccNumber << 8) & 0x0000ff00;
+            message |= ccNumber & 0x000000ff;
+            SendData(deviceID, message);
+        }
+
+        // Send MIDI channel message (channel voice/mode message)
+        // databyte is 2byte hex data
+        public void SendChannelMessage(uint deviceID, uint statusbyte, uint databyte) {
+            uint message = 0x00800000;
+            message |= statusbyte << 16 & 0x00ef0000;
+            message |= databyte & 0x0000ffff;
+            SendData(deviceID, message);
+        }
+
+        // overload: indicate channel number in argument
+        public void SendChannelMessage(uint deviceID, uint statusbyte, MidiChannel channel, uint databyte) {
+            uint message = 0x00800000;
+            message |= statusbyte << 16 & 0x00e00000;
+            message |= ((uint)channel << 16)  & 0x000f0000;
+            message |= databyte & 0x0000ffff;
+            SendData(deviceID, message);
+        }
+
+        public void SendMessage(uint deviceID, uint message)
+        {
+            SendData(deviceID, message);
+        }
+
         #endregion
 
         #region Event Delegates
@@ -205,10 +255,6 @@ namespace MidiJack
             // Process the message queue.
             while (true)
             {
-                // Send MIDI data
-                DequeueSendData();
-
-                // Receiving process
                 // Pop from the queue.
                 var data = DequeueIncomingData();
                 if (data == 0) break;
@@ -273,8 +319,8 @@ namespace MidiJack
         [DllImport("MidiJackPlugin", EntryPoint="MidiJackDequeueIncomingData")]
         public static extern ulong DequeueIncomingData();
 
-        [DllImport("MidiJackPlugin", EntryPoint="MidiJackDequeueSendData")]
-        public static extern int DequeueSendData();
+        [DllImport("MidiJackPlugin", EntryPoint="MidiJackSendData")]
+        public static extern uint SendData(uint dist, uint data);
 
         #endregion
 
