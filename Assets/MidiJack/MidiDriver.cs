@@ -99,6 +99,7 @@ namespace MidiJack
             return defaultValue;
         }
 
+        // MIDI Out, Send
         public void SendNoteOn(uint deviceID, MidiChannel channel, uint noteNumber, uint velocity)
         {
             uint message = 0x00900000; //0x0090637f
