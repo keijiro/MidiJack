@@ -108,7 +108,6 @@ namespace
         if (wMsg == MOM_OPEN) {
         }
         else if (wMsg == MOM_CLOSE) {
-            resource_lock.lock();
             resource_lock_send.lock();
             handles_to_close_send.push(hmo);
             resource_lock_send.unlock();
