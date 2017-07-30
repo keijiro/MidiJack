@@ -1,6 +1,17 @@
 MIDI Jack
 =========
 
+> MIDI OUT feature (only for Windows x64) is added at Nagitch/MIDIJack.
+>
+> MIDI Monitor window supports shows MIDI OUT Devices, and you can use these additional API :
+> - SendMessage(deviceID, message)
+> - SendNoteOn(deviceID, channel, noteNumber, velocity)
+> - SendNoteOff(deviceID, channel, noteNumber, velocity)
+> - SendChannelMessage(deviceID, statusbyte, databyte)
+> - SendChannelMessage(deviceID, statusbyte, channel, databyte)
+>
+> and example scenes added to _Assets/ExampleSend_. you may can find out how to identify Device ID from example code, actually _SendTestMIDIManager.cs_.
+
 MIDI Jack is a MIDI input plugin for Unity.
 
 ![sample](http://keijiro.github.io/MidiJack/sample.gif)
@@ -34,7 +45,7 @@ In that case, it returns the value in the All-Channel slot, which stores
 mixed status of all active channels.
 
 - MidiMaster.GetKey (channel, noteNumber)
-  
+
   Returns the velocity value while the key is pressed, or zero while the
   key is released. The value ranges from 0.0 (note-off) to 1.0 (maximum
   velocity).
