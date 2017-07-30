@@ -105,7 +105,7 @@ namespace MidiJack
             uint message = 0x00900000; //0x0090637f
             message |= ((uint)channel << 16)  & 0x000f0000;
             message |= (noteNumber << 8) & 0x0000ff00;
-            message |= noteNumber & 0x000000ff;
+            message |= velocity & 0x000000ff;
             SendData(deviceID, message);
         }
 
@@ -114,22 +114,23 @@ namespace MidiJack
             uint message = 0x00800000; //0x0090637f
             message |= ((uint)channel << 16)  & 0x000f0000;
             message |= (noteNumber << 8) & 0x0000ff00;
-            message |= noteNumber & 0x000000ff;
+            message |= velocity & 0x000000ff;
             SendData(deviceID, message);
         }
 
-        public void SendCC(uint deviceID, MidiChannel channel, uint ccNumber, uint velocity)
+        public void SendCC(uint deviceID, MidiChannel channel, uint ccNumber, uint value)
         {
             uint message = 0x00B00000;
             message |= ((uint)channel << 16)  & 0x000f0000;
             message |= (ccNumber << 8) & 0x0000ff00;
-            message |= ccNumber & 0x000000ff;
+            message |= value & 0x000000ff;
             SendData(deviceID, message);
         }
 
         // Send MIDI channel message (channel voice/mode message)
         // databyte is 2byte hex data
-        public void SendChannelMessage(uint deviceID, uint statusbyte, uint databyte) {
+        public void SendChannelMessage(uint deviceID, uint statusbyte, uint databyte)
+        {
             uint message = 0x00800000;
             message |= statusbyte << 16 & 0x00ef0000;
             message |= databyte & 0x0000ffff;
@@ -137,7 +138,8 @@ namespace MidiJack
         }
 
         // overload: indicate channel number in argument
-        public void SendChannelMessage(uint deviceID, uint statusbyte, MidiChannel channel, uint databyte) {
+        public void SendChannelMessage(uint deviceID, uint statusbyte, MidiChannel channel, uint databyte)
+        {
             uint message = 0x00800000;
             message |= statusbyte << 16 & 0x00e00000;
             message |= ((uint)channel << 16)  & 0x000f0000;

@@ -96,9 +96,34 @@ namespace MidiJack
             return MidiDriver.Instance.GetKnob(MidiChannel.All, knobNumber, defaultValue);
         }
 
-        public static void SendMessage(uint id, uint data)
+        public static void SendNoteOn(uint deviceID, MidiChannel channel, uint noteNumber, uint velocity)
         {
-            MidiDriver.Instance.SendMessage(id, data);
+            MidiDriver.Instance.SendNoteOn(deviceID, channel, noteNumber, velocity);
+        }
+
+        public static void SendNoteOff(uint deviceID, MidiChannel channel, uint noteNumber, uint velocity)
+        {
+            MidiDriver.Instance.SendNoteOff(deviceID, channel, noteNumber, velocity);
+        }
+
+        public static void SendCC(uint deviceID, MidiChannel channel, uint ccNumber, uint velocity)
+        {
+            MidiDriver.Instance.SendCC(deviceID, channel, ccNumber, velocity);
+        }
+
+        public static void SendChannelMessage(uint deviceID, uint statusbyte, uint databyte)
+        {
+            MidiDriver.Instance.SendChannelMessage(deviceID, statusbyte, databyte);
+        }
+
+        public static void SendChannelMessage(uint deviceID, uint statusbyte, MidiChannel channel, uint databyte)
+        {
+            MidiDriver.Instance.SendChannelMessage(deviceID, statusbyte, channel, databyte);
+        }
+
+        public static void SendMessage(uint deviceID, uint message)
+        {
+            MidiDriver.Instance.SendMessage(deviceID, message);
         }
     }
 }
