@@ -7,6 +7,7 @@ MIDI Jack
 > - SendMessage(deviceID, message)
 > - SendNoteOn(deviceID, channel, noteNumber, velocity)
 > - SendNoteOff(deviceID, channel, noteNumber, velocity)
+> - SendCC(deviceID, channel, ccNumber, velocity)
 > - SendChannelMessage(deviceID, statusbyte, databyte)
 > - SendChannelMessage(deviceID, statusbyte, channel, databyte)
 >
