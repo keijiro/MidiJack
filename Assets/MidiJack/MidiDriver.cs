@@ -106,7 +106,7 @@ namespace MidiJack
             message |= ((uint)channel << 16)  & 0x000f0000;
             message |= (noteNumber << 8) & 0x0000ff00;
             message |= velocity & 0x000000ff;
-            SendData(deviceID, message);
+            SendMessage(deviceID, message);
         }
 
         public void SendNoteOff(uint deviceID, MidiChannel channel, uint noteNumber, uint velocity)
@@ -115,7 +115,7 @@ namespace MidiJack
             message |= ((uint)channel << 16)  & 0x000f0000;
             message |= (noteNumber << 8) & 0x0000ff00;
             message |= velocity & 0x000000ff;
-            SendData(deviceID, message);
+            SendMessage(deviceID, message);
         }
 
         public void SendCC(uint deviceID, MidiChannel channel, uint ccNumber, uint value)
@@ -124,7 +124,7 @@ namespace MidiJack
             message |= ((uint)channel << 16)  & 0x000f0000;
             message |= (ccNumber << 8) & 0x0000ff00;
             message |= value & 0x000000ff;
-            SendData(deviceID, message);
+            SendMessage(deviceID, message);
         }
 
         // Send MIDI channel message (channel voice/mode message)
@@ -134,7 +134,7 @@ namespace MidiJack
             uint message = 0x00800000;
             message |= statusbyte << 16 & 0x00ef0000;
             message |= databyte & 0x0000ffff;
-            SendData(deviceID, message);
+            SendMessage(deviceID, message);
         }
 
         // overload: indicate channel number in argument
@@ -150,6 +150,22 @@ namespace MidiJack
         public void SendMessage(uint deviceID, uint message)
         {
             SendData(deviceID, message);
+
+            #if UNITY_EDITOR
+            // Record the message.
+            _totalMessageCountSend++;
+
+            ulong msg;
+            msg  = ((ulong)message & 0x00FF0000) >> 16;
+            msg |= ((ulong)message & 0x0000FF00);
+            msg |= ((ulong)message & 0x000000FF) << 16;
+            msg = msg << 32;
+            _messageHistorySend.Enqueue(new MidiMessage(msg));
+
+            // Truncate the history.
+            while (_messageHistorySend.Count > 8)
+                _messageHistorySend.Dequeue();
+            #endif
         }
 
         #endregion
@@ -194,11 +210,28 @@ namespace MidiJack
             }
         }
 
+        // Total message count Send
+        int _totalMessageCountSend;
+
+        public int TotalMessageCountSend {
+            get {
+                UpdateIfNeeded();
+                return _totalMessageCountSend;
+            }
+        }
+
         // Message history
         Queue<MidiMessage> _messageHistory;
 
         public Queue<MidiMessage> History {
             get { return _messageHistory; }
+        }
+
+        // Send Message history
+        Queue<MidiMessage> _messageHistorySend;
+
+        public Queue<MidiMessage> HistorySend {
+            get { return _messageHistorySend; }
         }
 
         #endif
@@ -215,6 +248,7 @@ namespace MidiJack
 
             #if UNITY_EDITOR
             _messageHistory = new Queue<MidiMessage>();
+            _messageHistorySend = new Queue<MidiMessage>();
             #endif
         }
 
