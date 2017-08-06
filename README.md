@@ -4,12 +4,12 @@ MIDI Jack
 > MIDI OUT feature (only for Windows x64) is added at Nagitch/MIDIJack.
 >
 > MIDI Monitor window supports shows MIDI OUT Devices, and you can use these additional API :
-> - SendMessage(deviceID, message)
-> - SendNoteOn(deviceID, channel, noteNumber, velocity)
-> - SendNoteOff(deviceID, channel, noteNumber, velocity)
-> - SendCC(deviceID, channel, ccNumber, velocity)
-> - SendChannelMessage(deviceID, statusbyte, databyte)
-> - SendChannelMessage(deviceID, statusbyte, channel, databyte)
+> - MidiMaster.SendMessage(deviceID, message)
+> - MidiMaster.SendNoteOn(deviceID, channel, noteNumber, velocity)
+> - MidiMaster.SendNoteOff(deviceID, channel, noteNumber, velocity)
+> - MidiMaster.SendCC(deviceID, channel, ccNumber, value)
+> - MidiMaster.SendChannelMessage(deviceID, statusbyte, databyte)
+> - MidiMaster.SendChannelMessage(deviceID, statusbyte, channel, databyte)
 >
 > and example scenes added to _Assets/ExampleSend_. you may can find out how to identify Device ID from example code, actually _SendTestMIDIManager.cs_.
 
