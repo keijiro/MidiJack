@@ -100,30 +100,30 @@ namespace MidiJack
         }
 
         // MIDI Out, Send
-        public void SendNoteOn(uint deviceID, MidiChannel channel, uint noteNumber, uint velocity)
+        public void SendNoteOn(uint deviceID, MidiChannel channel, int noteNumber, float velocity)
         {
             uint message = 0x00900000; //0x0090637f
             message |= ((uint)channel << 16)  & 0x000f0000;
-            message |= (noteNumber << 8) & 0x0000ff00;
-            message |= velocity & 0x000000ff;
+            message |= ((uint)noteNumber << 8) & 0x0000ff00;
+            message |= (uint)(velocity*127f) & 0x000000ff;
             SendMessage(deviceID, message);
         }
 
-        public void SendNoteOff(uint deviceID, MidiChannel channel, uint noteNumber, uint velocity)
+        public void SendNoteOff(uint deviceID, MidiChannel channel, int noteNumber, float velocity)
         {
             uint message = 0x00800000; //0x0090637f
             message |= ((uint)channel << 16)  & 0x000f0000;
-            message |= (noteNumber << 8) & 0x0000ff00;
-            message |= velocity & 0x000000ff;
+            message |= ((uint)noteNumber << 8) & 0x0000ff00;
+            message |= (uint)(velocity*127f) & 0x000000ff;
             SendMessage(deviceID, message);
         }
 
-        public void SendCC(uint deviceID, MidiChannel channel, uint ccNumber, uint value)
+        public void SendCC(uint deviceID, MidiChannel channel, int ccNumber, float value)
         {
             uint message = 0x00B00000;
             message |= ((uint)channel << 16)  & 0x000f0000;
-            message |= (ccNumber << 8) & 0x0000ff00;
-            message |= value & 0x000000ff;
+            message |= ((uint)ccNumber << 8) & 0x0000ff00;
+            message |= (uint)(value*127f) & 0x000000ff;
             SendMessage(deviceID, message);
         }
 
