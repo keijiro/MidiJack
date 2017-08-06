@@ -68,8 +68,24 @@ namespace
         }
     };
 
+    class MidiMessageSend
+    {
+    public:
+        DeviceID dist;
+        DWORD message;
+
+    public:
+        MidiMessageSend(DeviceID distination, DWORD message) {
+            this->dist = distination;
+            this->message = message;
+        }
+    };
+
     // Incoming MIDI message queue
     std::queue<MidiMessage> message_queue;
+
+    // MIDI OUT message queue
+    std::queue<MidiMessageSend> message_queue_send;
 
     // Device handler lists
     std::list<DeviceHandle> active_handles;
@@ -311,7 +327,7 @@ EXPORT_API uint64_t MidiJackDequeueIncomingData()
     return msg.Encode64Bit();
 }
 
-// MIDI OUT
+// Enqueue MIDI OUT message to send
 // data = 3 bytes midi note/cc message
 EXPORT_API uint32_t MidiJackSendData(DeviceID dist, uint32_t data)
 {
@@ -323,13 +339,28 @@ EXPORT_API uint32_t MidiJackSendData(DeviceID dist, uint32_t data)
     msg |= ((DWORD)data & 0x0000FF00);
     msg |= ((DWORD)data & 0x000000FF) << 16;
 
-    for_each(active_handles_send.begin(), active_handles_send.end(), [&](DeviceHandleSend dh) {
-        if (DeviceIDToHandleSend(dist) == dh) {
-            midiOutShortMsg(dh, msg);
-        }
-    });
+    resource_lock_send.lock();
+    message_queue_send.push(MidiMessageSend(dist, msg));
+    resource_lock_send.unlock();
 
     return 0;
+}
+
+// Dequeue and send queued data
+EXPORT_API void MidiJackDequeueSendData() {
+    if (message_queue_send.empty()) return;
+
+    resource_lock_send.lock();
+    MidiMessageSend msgsend = message_queue_send.front();
+    message_queue_send.pop();
+    resource_lock_send.unlock();
+
+
+    for_each(active_handles_send.begin(), active_handles_send.end(), [&](DeviceHandleSend dh) {
+        if (DeviceIDToHandleSend(msgsend.dist) == dh) {
+            midiOutShortMsg(dh, msgsend.message);
+        }
+    });
 }
 
 // MIDI SysEx OUT
