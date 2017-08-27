@@ -31,13 +31,9 @@ namespace MidiJack
     class MidiJackWindow : EditorWindow
     {
 
-        bool _autoOpen;
-        bool _autoRefresh;
-
         List<string> allDevices = new List<string>();
         Dictionary<string, bool> allDevicesBound = new Dictionary<string, bool>();
         bool _showDeviceManagement = true;
-        bool _showAutoControls = true;
 
         #region Custom Editor Window Code
 
@@ -49,105 +45,83 @@ namespace MidiJack
 
         private void OnEnable()
         {
-            _autoOpen = EditorPrefs.GetBool("MidiJack._autoOpen", true);
-            _autoRefresh = EditorPrefs.GetBool("MidiJack._autoRefresh", true);
-            SetAutoOpen(_autoOpen);
-            SetAutoRefresh(_autoRefresh);
+            Refresh();
+        }
+
+        void Refresh()
+        {
+            RefreshDevices();
+            GetDeviceNames();
         }
 
         void OnGUI()
         {
             EditorGUILayout.Space();
-
-#if UNITY_EDITOR_WIN
-            _showAutoControls = EditorGUILayout.Foldout(_showAutoControls, "Auto Controls", true);
-            if (_showAutoControls)
-            {
-                // Switch Auto-Opening of all ports
-                var autoOpen = EditorGUILayout.Toggle("Auto Open Devices", _autoOpen);
-                if (autoOpen != _autoOpen)
-                {
-                    SetAutoOpen(autoOpen);
-                    EditorPrefs.SetBool("MidiJack._autoOpen", _autoOpen);
-                    _autoOpen = autoOpen;
-                }
-
-                var autoRefresh = EditorGUILayout.Toggle("Auto Refresh Devices", _autoRefresh);
-                if (autoRefresh != _autoRefresh)
-                {
-                    SetAutoRefresh(autoRefresh);
-                    // Update device name list if we just turned on autorefresh
-                    if (autoRefresh)
-                    {
-                        GetDeviceNames();
-                    }
-                    EditorPrefs.SetBool("MidiJack._autoRefresh", _autoRefresh);
-                    _autoRefresh = autoRefresh;
-                }
-
-                if (!autoRefresh)
-                {
-                    if (GUILayout.Button("Refresh"))
-                    {
-                        RefreshDevices();
-                        GetDeviceNames();
-                    }
-                }
-
-                EditorGUILayout.Space();
-            }
-#endif
+            EditorGUILayout.Space();
 
             // Device Management
-            if (!_autoOpen)
+            _showDeviceManagement = EditorGUILayout.Foldout(_showDeviceManagement, "Device Management", true);
+            if (_showDeviceManagement)
             {
                 var endpointCount = CountEndpoints();
-                _showDeviceManagement = EditorGUILayout.Foldout(_showDeviceManagement, "Device Management", true);
-                if (_showDeviceManagement)
+
+                EditorGUILayout.Space();
+
+                if (GUILayout.Button("Refresh"))
                 {
-                    // Device Buttons
-                    for (uint i = 0; i < allDevices.Count; i++)
-                    {
-                        string name = allDevices[(int)i];
-                        bool newValue = (GUILayout.Toggle(allDevicesBound[name], name));
-                        if (newValue != allDevicesBound[name])
-                        {
-                            if (newValue)
-                            {
-                                Debug.LogFormat("Trying to open {0}", name);
-                                OpenDevice(i);
-                            }
-                            else
-                            {
-                                Debug.LogFormat("Trying to close {0}", name);
-                                CloseDevice(i);
-                            }
+                    Refresh();
+                }
 
-                            allDevicesBound[name] = newValue;
-                        }
-                    }
-
-                    // Close All Button
-                    var closeButtonStyle = new GUIStyle(GUI.skin.button);
-                    closeButtonStyle.normal.textColor = Color.red;
-                    if (GUILayout.Button("Close All Devices", closeButtonStyle))
+                // Device Buttons
+                for (uint i = 0; i < allDevices.Count; i++)
+                {
+                    string name = allDevices[(int)i];
+                    bool newValue = (GUILayout.Toggle(allDevicesBound[name], name));
+                    if (newValue != allDevicesBound[name])
                     {
-                        List<string> keys = new List<string>(allDevicesBound.Keys);
-                        foreach (string key in keys)
+                        if (newValue)
                         {
-                            allDevicesBound[key] = false;
+                            CloseAllDevices();
+                            OpenDevice(i);
                         }
-                        CloseDevices();
-                        Repaint();
+                        else
+                        {
+                            CloseAllDevices();
+                        }
+
+                        allDevicesBound[name] = newValue;
                     }
                 }
+
+                // Close All Button
+                var closeButtonStyle = new GUIStyle(GUI.skin.button);
+                closeButtonStyle.normal.textColor = Color.red;
+                if (GUILayout.Button("Close All Devices", closeButtonStyle))
+                {
+                    CloseAllDevices();
+                    Repaint();
+                }
+
             }
+
+            EditorGUILayout.Space();
+
 
             // Message history
             var temp = "Recent MIDI messages:";
             foreach (var message in MidiDriver.Instance.History)
                 temp += "\n" + message.ToString();
             EditorGUILayout.HelpBox(temp, MessageType.None);
+        }
+
+        void CloseAllDevices()
+        {
+            List<string> keys = new List<string>(allDevicesBound.Keys);
+            foreach (string key in keys)
+            {
+                allDevicesBound[key] = false;
+            }
+            CloseDevices();
         }
 
         void GetDeviceNames()
@@ -211,12 +185,6 @@ namespace MidiJack
 
         [DllImport("MidiJackPlugin", EntryPoint = "MidiJackOpenDevice")]
         static extern void OpenDevice(uint index);
-
-        [DllImport("MidiJackPlugin", EntryPoint = "MidiJackSetAutoOpen")]
-        static extern void SetAutoOpen(bool value);
-
-        [DllImport("MidiJackPlugin", EntryPoint = "MidiJackSetAutoRefresh")]
-        static extern void SetAutoRefresh(bool value);
 
         [DllImport("MidiJackPlugin", EntryPoint = "MidiJackRefreshDevices")]
         static extern void RefreshDevices();
