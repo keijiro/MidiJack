@@ -78,8 +78,8 @@ Current Limitations
 - Only supports note and CC messages. No support for program changes nor
   SysEx.
 - The MIDI Jack plugin always tries to capture all available MIDI devices on OS X.
-  On Windows you can use the MidiJack Window to choose which device to open.
-  On Android, it will cycle through available MIDI devices until it succeeds in opening one or runs out of devices.
+- On Windows you can use the MidiJack Window to choose which device to open.
+- On Android, it will cycle through available MIDI devices until it succeeds in opening one or runs out of devices.
 
 License
 -------
