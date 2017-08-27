@@ -67,10 +67,6 @@ namespace
     std::list<DeviceHandle> active_handles;
     std::stack<DeviceHandle> handles_to_close;
 
-	// Auto-Open All Devices
-	bool do_auto_open = true;
-	bool do_auto_refresh = true;
-
     // Mutex for resources
     std::recursive_mutex resource_lock;
 
@@ -172,11 +168,6 @@ namespace
             handles_to_close.pop();
         }
 
-		// Try open all devices to detect newly connected ones.
-		if (do_auto_open) {
-			OpenAllDevices();
-		}
-
 		CacheDeviceNames();
 
         resource_lock.unlock();
@@ -222,10 +213,6 @@ EXPORT_API const char* MidiJackGetEndpointName(uint32_t id)
 // Retrieve and erase an MIDI message data from the message queue.
 EXPORT_API uint64_t MidiJackDequeueIncomingData()
 {
-	if (do_auto_refresh) {
-		RefreshDevices();
-	}
-
     if (message_queue.empty()) return 0;
 
     resource_lock.lock();
@@ -249,14 +236,6 @@ EXPORT_API void MidiJackOpenDevice(unsigned int index) {
 
 EXPORT_API void MidiJackCloseDevice(unsigned int index) {
 	CloseDevice(index);
-}
-
-EXPORT_API void MidiJackSetAutoOpen(bool value) {
-	do_auto_open = value;
-}
-
-EXPORT_API void MidiJackSetAutoRefresh(bool value) {
-	do_auto_refresh = value;
 }
 
 EXPORT_API void MidiJackRefreshDevices() {
