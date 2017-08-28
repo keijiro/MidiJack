@@ -52,6 +52,21 @@ namespace MidiJack
         {
             RefreshDevices();
             GetDeviceNames();
+            RestoreDeviceValues();
+        }
+
+        void RestoreDeviceValues()
+        {
+            // Restore state from EditorPrefs
+            var keys = new List<string>();
+            foreach (var item in allDevicesBound.Keys)
+            {
+                keys.Add(item);
+            }
+            foreach (var key in keys)
+            {
+                allDevicesBound[key] = EditorPrefs.GetBool(GetPrefsKeyFromName(key), false);
+            }
         }
 
         void OnGUI()
@@ -89,7 +104,7 @@ namespace MidiJack
                             CloseAllDevices();
                         }
 
-                        allDevicesBound[name] = newValue;
+                        SetDeviceState(name, newValue);
                     }
                 }
 
@@ -114,12 +129,23 @@ namespace MidiJack
             EditorGUILayout.HelpBox(temp, MessageType.None);
         }
 
+        void SetDeviceState(string deviceName, bool value)
+        {
+            EditorPrefs.SetBool(GetPrefsKeyFromName(deviceName), value);
+            allDevicesBound[deviceName] = value;
+        }
+
+        string GetPrefsKeyFromName(string name)
+        {
+            return string.Format("MidiJackDeviceEnabled-{0}", name);
+        }
+
         void CloseAllDevices()
         {
             List<string> keys = new List<string>(allDevicesBound.Keys);
             foreach (string key in keys)
             {
-                allDevicesBound[key] = false;
+                SetDeviceState(key, false);
             }
             CloseDevices();
         }
@@ -134,7 +160,7 @@ namespace MidiJack
                 allDevices.Add(name);
                 if (!allDevicesBound.ContainsKey(name))
                 {
-                    allDevicesBound.Add(name, false);
+                    allDevicesBound.Add(name, EditorPrefs.GetBool(GetPrefsKeyFromName(name), false));
                 }
             }
         }
