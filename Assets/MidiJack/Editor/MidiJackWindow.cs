@@ -154,9 +154,10 @@ namespace MidiJack
         {
             allDevices = new List<string>();
             var endpointCount = CountEndpoints();
-            for (uint i = 0; i < endpointCount; i++)
+            for (int i = 0; i < endpointCount; i++)
             {
-                string name = GetEndpointName(i);
+				var id = GetEndpointIdAtIndex(i);
+				var name = GetEndpointName(id);
                 allDevices.Add(name);
                 if (!allDevicesBound.ContainsKey(name))
                 {
