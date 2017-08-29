@@ -156,13 +156,7 @@ namespace MidiJack
             var endpointCount = CountEndpoints();
             for (int i = 0; i < endpointCount; i++)
             {
-
-#if UNITY_EDITOR_OSX
-                var id = GetEndpointIdAtIndex(i);
-				var name = GetEndpointName(id);
-#elif UNITY_EDITOR_WIN
                 var name = GetEndpointName((uint)i);
-#endif
 
                 allDevices.Add(name);
                 if (!allDevicesBound.ContainsKey(name))

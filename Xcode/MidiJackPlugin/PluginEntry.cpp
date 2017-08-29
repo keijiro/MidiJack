@@ -212,8 +212,9 @@ extern "C" uint32_t MidiJackGetEndpointIDAtIndex(int index)
 }
 
 // Get the name of an endpoint.
-extern "C" const char* MidiJackGetEndpointName(uint32_t id)
+extern "C" const char* MidiJackGetEndpointName(int index)
 {
+	uint32_t id = MidiJackGetEndpointIDAtIndex(index);
     if (!ResetIfRequired()) return "(not ready)";
     static std::string temp;
     temp = GetSourceName(id);
