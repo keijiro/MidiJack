@@ -45,7 +45,7 @@ namespace MidiJack
 
         private void OnEnable()
         {
-            Refresh();
+        //    Refresh();
         }
 
         void Refresh()
@@ -156,8 +156,14 @@ namespace MidiJack
             var endpointCount = CountEndpoints();
             for (int i = 0; i < endpointCount; i++)
             {
-				var id = GetEndpointIdAtIndex(i);
+
+#if UNITY_EDITOR_OSX
+                var id = GetEndpointIdAtIndex(i);
 				var name = GetEndpointName(id);
+#elif UNITY_EDITOR_WIN
+                var name = GetEndpointName((uint)i);
+#endif
+
                 allDevices.Add(name);
                 if (!allDevicesBound.ContainsKey(name))
                 {
@@ -216,6 +222,6 @@ namespace MidiJack
         [DllImport("MidiJackPlugin", EntryPoint = "MidiJackRefreshDevices")]
         static extern void RefreshDevices();
 
-        #endregion
+#endregion
     }
 }
