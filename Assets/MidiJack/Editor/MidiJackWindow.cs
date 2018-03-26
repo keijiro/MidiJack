@@ -83,6 +83,7 @@ namespace MidiJack
 
         #region Native Plugin Interface
 
+        #if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN
         [DllImport("MidiJackPlugin", EntryPoint="MidiJackCountEndpoints")]
         static extern int CountEndpoints();
 
@@ -95,6 +96,19 @@ namespace MidiJack
         static string GetEndpointName(uint id) {
             return Marshal.PtrToStringAnsi(MidiJackGetEndpointName(id));
         }
+        #else
+        static int CountEndpoints() {
+          return 0;
+        }
+
+        static uint GetEndpointIdAtIndex(int index) {
+          return 0;
+        }
+
+        static string GetEndpointName(uint id) {
+          return "Not implemented on this platform";
+        }
+        #endif
 
         #endregion
     }
