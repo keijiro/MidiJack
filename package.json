@@ -1,0 +1,8 @@
+{
+    "name": "jp.keijiro.midi-jack",
+    "displayName": "MidiJack",
+    "version": "0.0.1",
+    "unity": "2018.1",
+    "description": "MIDI Jack is a MIDI input plugin for Unity.",
+    "dependencies": { }
+}

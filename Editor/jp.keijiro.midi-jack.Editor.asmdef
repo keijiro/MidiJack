@@ -1,0 +1,12 @@
+{
+    "name": "jp.keijiro.midi-jack.Editor",
+    "references": [
+        "jp.keijiro.midi-jack.Runtime"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false
+}
