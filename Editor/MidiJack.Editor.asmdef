@@ -1,7 +1,7 @@
 {
-    "name": "jp.keijiro.midi-jack.Editor",
+    "name": "MidiJack.Editor",
     "references": [
-        "jp.keijiro.midi-jack.Runtime"
+        "MidiJack"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [
