@@ -5,6 +5,7 @@ namespace
     // Basic type aliases
     using DeviceHandle = HMIDIIN;
     using DeviceID = uint32_t;
+    const DeviceHandle INVALID_DEVICE_HANDLE = reinterpret_cast<DeviceHandle>(static_cast<intptr_t>(-1));
 
     // Utility functions for Win32/64 compatibility
 #ifdef _WIN64
@@ -12,9 +13,15 @@ namespace
     {
         return static_cast<DeviceID>(reinterpret_cast<uint64_t>(handle));
     }
+    std::map<DeviceID, DeviceHandle> device_id_to_handle;
     DeviceHandle DeviceIDToHandle(DeviceID id)
     {
-        return reinterpret_cast<DeviceHandle>(static_cast<uint64_t>(id));
+        auto itor = device_id_to_handle.find(id);
+        if (itor != device_id_to_handle.end())
+        {
+            return (*itor).second;
+        }
+        return INVALID_DEVICE_HANDLE;
     }
 #else
     DeviceID DeviceHandleToID(DeviceHandle handle)
@@ -111,6 +118,8 @@ namespace
             {
                 resource_lock.lock();
                 active_handles.push_back(handle);
+                DeviceID id = DeviceHandleToID(handle);
+                device_id_to_handle[id] = handle;
                 resource_lock.unlock();
             }
             else
@@ -127,6 +136,8 @@ namespace
 
         resource_lock.lock();
         active_handles.remove(handle);
+        DeviceID id = DeviceHandleToID(handle);
+        device_id_to_handle.erase(id);
         resource_lock.unlock();
     }
 
