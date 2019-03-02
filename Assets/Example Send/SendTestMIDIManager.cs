@@ -53,7 +53,15 @@ public class SendTestMIDIManager : MonoBehaviour {
             MidiOutDevice mo = new MidiOutDevice(id, name);
             midiOutDevices.Add(mo);
         }
+
+        if(midiOutDeviceCount != endpointCountSend) {
+            OnvalueChanged();
+        }
 	}
+
+    public void OnvalueChanged() {
+
+    }
 
 
 
