@@ -17,7 +17,7 @@ Installation
 Download and import [MidiJack.unitypackage][unitypackage] into your project.
 That’s it!
 
-See [the troubleshooting topics][troubleshooting] if you meet any problem.
+See [the troubleshooting topics][troubleshooting] if you encounter any problems.
 
 [unitypackage]:
   https://github.com/keijiro/MidiJack/raw/master/MidiJack.unitypackage
@@ -30,7 +30,7 @@ API Reference
 The basic functions of MIDI Jack are provided in the MidiMaster class.
 
 The channel arguments in the following functions can be omitted.
-In that case, it returns the value in the All-Channel slot, which stores
+In that case, the functions return the values in the All-Channel slot, which stores
 mixed status of all active channels.
 
 - MidiMaster.GetKey (channel, noteNumber)
