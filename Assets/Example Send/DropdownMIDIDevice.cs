@@ -13,7 +13,7 @@ public class DropdownMIDIDevice : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		
+		RefreshMIDIOutList();
 	}
 	
 
@@ -25,5 +25,7 @@ public class DropdownMIDIDevice : MonoBehaviour {
         {
 			dd.options.Add(new Dropdown.OptionData(midiManager.MidiOutDevices[i].ToString()) );
 		}
+
+		dd.RefreshShownValue();
 	}
 }

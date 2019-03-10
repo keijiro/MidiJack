@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 using System.Globalization;
 using UnityEngine.UI;
 using MidiJack;
+using System;
 
-public class SendTest : MonoBehaviour {
+public class SendTestKeyboard : MonoBehaviour {
 	public SendTestMIDIManager midiManager;
 	public Dropdown midiOutSelector;
-	public InputField message;
 
 	// Use this for initialization
 	void Start () {
@@ -19,20 +19,11 @@ public class SendTest : MonoBehaviour {
 	void Update () {
 	}
 
-	public void OnValueChanged(int result){
-	}
-
-	public void SendMIDIOut() {
+	public void SendMIDINote(String note) {
 		uint id = midiManager.MidiOutDevices[ midiOutSelector.value ].Id;
-		uint msg = (uint)int.Parse(message.text, NumberStyles.HexNumber);
-		MidiMaster.SendMessage(id, msg);
-	}
-
-	public void SendMIDINote() {
-		uint id = midiManager.MidiOutDevices[ midiOutSelector.value ].Id;
-		int note = int.Parse(message.text, NumberStyles.HexNumber);
-		MidiMaster.SendNoteOn(id, MidiJack.MidiChannel.Ch1, note, 0.8f);
-		StartCoroutine(waitNoteOff(id, note));
+		int noteParsed = int.Parse(note, NumberStyles.HexNumber);
+		MidiMaster.SendNoteOn(id, MidiJack.MidiChannel.Ch1, noteParsed, 0.8f);
+		StartCoroutine(waitNoteOff(id, noteParsed));
 	}
 
 	private IEnumerator waitNoteOff(uint id, int note) {

@@ -56,7 +56,6 @@ public class SendTestMIDIManager : MonoBehaviour {
 	}
 
 
-
        #region Native Plugin Interface
 
         // MIDI OUT
