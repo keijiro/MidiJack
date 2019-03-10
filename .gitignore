@@ -24,9 +24,3 @@ ipch/
 *.lnk
 .DS_Store
 Thumbs.db
-.vscode/launch.json
-.vscode/settings.json
-Assembly-CSharp-Editor.csproj
-Assembly-CSharp.csproj
-MidiJack.sln
-VisualStudio/MidiJackPlugin.VC.opendb
