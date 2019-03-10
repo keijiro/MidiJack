@@ -26,9 +26,6 @@ public class SendTest : MonoBehaviour {
 		uint id = midiManager.MidiOutDevices[ midiOutSelector.value ].Id;
 		uint msg = (uint)int.Parse(message.text, NumberStyles.HexNumber);
 		MidiMaster.SendMessage(id, msg);
-
-		int note = int.Parse(message.text.Substring(2,2), NumberStyles.HexNumber);
-		StartCoroutine(waitNoteOff(id, note));
 	}
 
 	public void SendMIDINote() {
