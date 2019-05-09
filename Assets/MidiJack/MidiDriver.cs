@@ -292,9 +292,6 @@ namespace MidiJack
             // Process the message queue.
             while (true)
             {
-                // dequeue MIDI OUT message
-                DequeueSendData();
-
                 // MIDI IN message pop from the queue.
                 var data = DequeueIncomingData();
                 if (data == 0) break;
@@ -345,6 +342,12 @@ namespace MidiJack
                 #endif
             }
 
+            while(true) {
+                // dequeue MIDI OUT message
+                var data = DequeueSendData();
+                if(data == 0) break;
+            }
+
             #if UNITY_EDITOR
             // Truncate the history.
             while (_messageHistory.Count > 8)
@@ -363,7 +366,7 @@ namespace MidiJack
         public static extern uint SendData(uint dist, uint data);
 
         [DllImport("MidiJackPlugin", EntryPoint="MidiJackDequeueSendData")]
-        public static extern uint DequeueSendData();
+        public static extern ulong DequeueSendData();
 
         #endregion
 

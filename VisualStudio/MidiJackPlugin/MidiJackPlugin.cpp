@@ -71,13 +71,27 @@ namespace
     class MidiMessageSend
     {
     public:
-        DeviceID dist;
+        DeviceID dest;
         DWORD message;
+        uint8_t status_;
+        uint8_t data1_;
+        uint8_t data2_;
 
     public:
-        MidiMessageSend(DeviceID distination, DWORD message) {
-            this->dist = distination;
+        MidiMessageSend(DeviceID destination, DWORD message)
+            : dest(destination), status_(message), data1_(message >> 8), data2_(message >> 16)
+        {
+            this->dest = destination;
             this->message = message;
+        }
+
+        uint64_t Encode64Bit()
+        {
+            uint64_t ul = dest;
+            ul |= (uint64_t)status_ << 32;
+            ul |= (uint64_t)data1_ << 40;
+            ul |= (uint64_t)data2_ << 48;
+            return ul;
         }
     };
 
@@ -329,7 +343,7 @@ EXPORT_API uint64_t MidiJackDequeueIncomingData()
 
 // Enqueue MIDI OUT message to send
 // data = 3 bytes midi note/cc message
-EXPORT_API uint32_t MidiJackSendData(DeviceID dist, uint32_t data)
+EXPORT_API uint32_t MidiJackSendData(DeviceID dest, uint32_t data)
 {
     RefreshDevices();
 
@@ -340,27 +354,29 @@ EXPORT_API uint32_t MidiJackSendData(DeviceID dist, uint32_t data)
     msg |= ((DWORD)data & 0x000000FF) << 16;
 
     resource_lock_send.lock();
-    message_queue_send.push(MidiMessageSend(dist, msg));
+    message_queue_send.push(MidiMessageSend(dest, msg));
     resource_lock_send.unlock();
 
     return 0;
 }
 
 // Dequeue and send queued data
-EXPORT_API void MidiJackDequeueSendData() {
-    if (message_queue_send.empty()) return;
+EXPORT_API uint64_t MidiJackDequeueSendData() {
+    if (message_queue_send.empty()) return 0;
 
     resource_lock_send.lock();
-    MidiMessageSend msgsend = message_queue_send.front();
+    auto msgsend = message_queue_send.front();
     message_queue_send.pop();
     resource_lock_send.unlock();
 
 
     for_each(active_handles_send.begin(), active_handles_send.end(), [&](DeviceHandleSend dh) {
-        if (DeviceIDToHandleSend(msgsend.dist) == dh) {
+        if (DeviceIDToHandleSend(msgsend.dest) == dh) {
             midiOutShortMsg(dh, msgsend.message);
         }
     });
+
+    return msgsend.Encode64Bit();
 }
 
 // MIDI SysEx OUT
