@@ -30,9 +30,17 @@ namespace
     {
         return reinterpret_cast<DeviceID>(handle);
     }
+    DeviceID DeviceHandleToID(DeviceHandleSend handle)
+    {
+        return static_cast<DeviceID>(reinterpret_cast<uint64_t>(handle));
+    }
     DeviceHandle DeviceIDToHandle(DeviceID id)
     {
         return reinterpret_cast<DeviceHandle>(id);
+    }
+    DeviceHandleSend DeviceIDToHandleSend(DeviceID id)
+    {
+        return reinterpret_cast<DeviceHandleSend>(static_cast<uint64_t>(id));
     }
 #endif
 
