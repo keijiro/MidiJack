@@ -22,7 +22,6 @@ namespace
     std::map<DeviceID, DeviceHandle> device_id_to_handle;
     DeviceHandle DeviceIDToHandle(DeviceID id)
     {
-        // return reinterpret_cast<DeviceHandle>(static_cast<uint64_t>(id));
         auto itor = device_id_to_handle.find(id);
         if (itor != device_id_to_handle.end())
         {
@@ -33,7 +32,6 @@ namespace
     std::map<DeviceID, DeviceHandleSend> device_id_to_handle_send;
     DeviceHandleSend DeviceIDToHandleSend(DeviceID id)
     {
-        // return reinterpret_cast<DeviceHandleSend>(static_cast<uint64_t>(id));
         auto itor = device_id_to_handle_send.find(id);
         if (itor != device_id_to_handle_send.end())
         {
@@ -50,10 +48,12 @@ namespace
     {
         return static_cast<DeviceID>(reinterpret_cast<uint64_t>(handle));
     }
+    std::map<DeviceID, DeviceHandle> device_id_to_handle;
     DeviceHandle DeviceIDToHandle(DeviceID id)
     {
         return reinterpret_cast<DeviceHandle>(id);
     }
+    std::map<DeviceID, DeviceHandleSend> device_id_to_handle_send;
     DeviceHandleSend DeviceIDToHandleSend(DeviceID id)
     {
         return reinterpret_cast<DeviceHandleSend>(static_cast<uint64_t>(id));
@@ -313,12 +313,14 @@ namespace
 // Counts the number of MIDI IN endpoints.
 EXPORT_API int MidiJackCountEndpoints()
 {
+    RefreshDevices();
     return static_cast<int>(active_handles.size());
 }
 
 // Counts the number of MIDI OUT endpoints.
 EXPORT_API int MidiJackCountSendEndpoints()
 {
+    RefreshDevices();
     return static_cast<int>(active_handles_send.size());
 }
 
