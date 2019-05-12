@@ -6,6 +6,8 @@ namespace
     using DeviceHandle = HMIDIIN;
     using DeviceHandleSend = HMIDIOUT;
     using DeviceID = uint32_t;
+    const DeviceHandle INVALID_DEVICE_HANDLE = reinterpret_cast<DeviceHandle>(static_cast<intptr_t>(-1));
+    const DeviceHandleSend INVALID_DEVICE_HANDLE_SEND = reinterpret_cast<DeviceHandleSend>(static_cast<intptr_t>(-1));
 
     // Utility functions for Win32/64 compatibility
 #ifdef _WIN64
@@ -17,13 +19,25 @@ namespace
     {
         return static_cast<DeviceID>(reinterpret_cast<uint64_t>(handle));
     }
+    std::map<DeviceID, DeviceHandle> device_id_to_handle;
     DeviceHandle DeviceIDToHandle(DeviceID id)
     {
-        return reinterpret_cast<DeviceHandle>(static_cast<uint64_t>(id));
+        auto itor = device_id_to_handle.find(id);
+        if (itor != device_id_to_handle.end())
+        {
+            return (*itor).second;
+        }
+        return INVALID_DEVICE_HANDLE;
     }
+    std::map<DeviceID, DeviceHandleSend> device_id_to_handle_send;
     DeviceHandleSend DeviceIDToHandleSend(DeviceID id)
     {
-        return reinterpret_cast<DeviceHandleSend>(static_cast<uint64_t>(id));
+        auto itor = device_id_to_handle_send.find(id);
+        if (itor != device_id_to_handle_send.end())
+        {
+            return (*itor).second;
+        }
+        return INVALID_DEVICE_HANDLE_SEND;
     }
 #else
     DeviceID DeviceHandleToID(DeviceHandle handle)
@@ -34,10 +48,12 @@ namespace
     {
         return static_cast<DeviceID>(reinterpret_cast<uint64_t>(handle));
     }
+    std::map<DeviceID, DeviceHandle> device_id_to_handle;
     DeviceHandle DeviceIDToHandle(DeviceID id)
     {
         return reinterpret_cast<DeviceHandle>(id);
     }
+    std::map<DeviceID, DeviceHandleSend> device_id_to_handle_send;
     DeviceHandleSend DeviceIDToHandleSend(DeviceID id)
     {
         return reinterpret_cast<DeviceHandleSend>(static_cast<uint64_t>(id));
@@ -189,6 +205,8 @@ namespace
             {
                 resource_lock.lock();
                 active_handles.push_back(handle);
+                DeviceID id = DeviceHandleToID(handle);
+                device_id_to_handle[id] = handle;
                 resource_lock.unlock();
             }
             else
@@ -208,6 +226,8 @@ namespace
         {
             resource_lock_send.lock();
             active_handles_send.push_back(handle);
+            DeviceID id = DeviceHandleToID(handle);
+            device_id_to_handle_send[id] = handle;
             resource_lock_send.unlock();
         }
         else {
@@ -223,6 +243,8 @@ namespace
 
         resource_lock.lock();
         active_handles.remove(handle);
+        DeviceID id = DeviceHandleToID(handle);
+        device_id_to_handle.erase(id);
         resource_lock.unlock();
     }
 
@@ -233,6 +255,8 @@ namespace
 
         resource_lock_send.lock();
         active_handles_send.remove(handle);
+        DeviceID id = DeviceHandleToID(handle);
+        device_id_to_handle_send.erase(id);
         resource_lock_send.unlock();
     }
 
@@ -289,12 +313,14 @@ namespace
 // Counts the number of MIDI IN endpoints.
 EXPORT_API int MidiJackCountEndpoints()
 {
+    RefreshDevices();
     return static_cast<int>(active_handles.size());
 }
 
 // Counts the number of MIDI OUT endpoints.
 EXPORT_API int MidiJackCountSendEndpoints()
 {
+    RefreshDevices();
     return static_cast<int>(active_handles_send.size());
 }
 
