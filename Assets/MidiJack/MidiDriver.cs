@@ -44,10 +44,14 @@ namespace MidiJack
             // Knob number to knob value mapping
             public Dictionary<int, float> _knobMap;
 
+            // PitchBend -1 to +1
+            public float _pitchBend;
+
             public ChannelState()
             {
                 _noteArray = new float[128];
                 _knobMap = new Dictionary<int, float>();
+                _pitchBend = 0.0f;
             }
         }
 
@@ -99,6 +103,12 @@ namespace MidiJack
             return defaultValue;
         }
 
+        public float GetBend(MidiChannel channel)
+        {
+            UpdateIfNeeded();
+            return _channelArray[(int)channel]._pitchBend;
+        }
+
         #endregion
 
         #region Event Delegates
@@ -106,10 +116,12 @@ namespace MidiJack
         public delegate void NoteOnDelegate(MidiChannel channel, int note, float velocity);
         public delegate void NoteOffDelegate(MidiChannel channel, int note);
         public delegate void KnobDelegate(MidiChannel channel, int knobNumber, float knobValue);
+        public delegate void PitchBendDelegate(MidiChannel channel, float bend);
 
         public NoteOnDelegate noteOnDelegate { get; set; }
         public NoteOffDelegate noteOffDelegate { get; set; }
         public KnobDelegate knobDelegate { get; set; }
+        public PitchBendDelegate pitchBendDelegate { get; set; }
 
         #endregion
 
@@ -246,6 +258,17 @@ namespace MidiJack
                     _channelArray[(int)MidiChannel.All]._knobMap[message.data1] = level;
                     if (knobDelegate != null)
                         knobDelegate((MidiChannel)channelNumber, message.data1, level);
+                }
+
+                // PitchBend message?
+                if (statusCode == 0xe)
+                {
+                    var bendInt = ((int)message.data2 << 7) | (int)message.data2;
+                    var bend = (((float)bendInt / 16383.0f) * 2.0f) - 1.0f;
+                    _channelArray[channelNumber]._pitchBend = bend;
+                    _channelArray[(int)MidiChannel.All]._pitchBend = bend;
+                    if (knobDelegate != null)
+                        pitchBendDelegate((MidiChannel)channelNumber, bend);
                 }
 
                 #if UNITY_EDITOR
