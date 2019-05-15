@@ -41,6 +41,16 @@ namespace MidiJack
             set { MidiDriver.Instance.knobDelegate = value; }
         }
 
+        public static MidiDriver.PolyAfterTouchDelegate polyAfterTouchDelegate {
+            get { return MidiDriver.Instance.polyAfterTouchDelegate; }
+            set { MidiDriver.Instance.polyAfterTouchDelegate = value; }
+        }
+
+        public static MidiDriver.ChannelAfterTouchDelegate channelAfterTouchDelegate {
+            get { return MidiDriver.Instance.channelAfterTouchDelegate; }
+            set { MidiDriver.Instance.channelAfterTouchDelegate = value; }
+        }
+
         // Returns the key state (on: velocity, off: zero).
         public static float GetKey(MidiChannel channel, int noteNumber)
         {
@@ -94,6 +104,28 @@ namespace MidiJack
         public static float GetKnob(int knobNumber, float defaultValue = 0)
         {
             return MidiDriver.Instance.GetKnob(MidiChannel.All, knobNumber, defaultValue);
+        }
+
+        // Returns the after touch (polyphonic) pressure.
+        public static float GetPolyAfterTouch(MidiChannel channel, int noteNumber)
+        {
+            return MidiDriver.Instance.GetPolyAfterTouch(channel, noteNumber);
+        }
+
+        public static float GetPolyAfterTouch(int noteNumber)
+        {
+            return MidiDriver.Instance.GetPolyAfterTouch(MidiChannel.All, noteNumber);
+        }
+
+        // Returns the after touch (channel) pressure.
+        public static float GetChannelAfterTouch(MidiChannel channel)
+        {
+            return MidiDriver.Instance.GetChannelAfterTouch(channel);
+        }
+
+        public static float GetChannelAfterTouch()
+        {
+            return MidiDriver.Instance.GetChannelAfterTouch(MidiChannel.All);
         }
     }
 }

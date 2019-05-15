@@ -41,13 +41,21 @@ namespace MidiJack
             //          (X-1 represents velocity)
             public float[] _noteArray;
 
+            // After touch (polyphonic key pressure) state array
+            public float[] _afterTouchArray;
+
             // Knob number to knob value mapping
             public Dictionary<int, float> _knobMap;
+
+            // After touch (channel pressure)
+            public float _afterTouch;
 
             public ChannelState()
             {
                 _noteArray = new float[128];
                 _knobMap = new Dictionary<int, float>();
+                _afterTouchArray = new float[128];
+                _afterTouch = 0.0f;
             }
         }
 
@@ -99,6 +107,18 @@ namespace MidiJack
             return defaultValue;
         }
 
+        public float GetPolyAfterTouch(MidiChannel channel, int noteNumber)
+        {
+            UpdateIfNeeded();
+            return _channelArray[(int)channel]._afterTouchArray[noteNumber];
+        }
+
+        public float GetChannelAfterTouch(MidiChannel channel)
+        {
+            UpdateIfNeeded();
+            return _channelArray[(int)channel]._afterTouch;
+        }
+
         #endregion
 
         #region Event Delegates
@@ -106,10 +126,14 @@ namespace MidiJack
         public delegate void NoteOnDelegate(MidiChannel channel, int note, float velocity);
         public delegate void NoteOffDelegate(MidiChannel channel, int note);
         public delegate void KnobDelegate(MidiChannel channel, int knobNumber, float knobValue);
+        public delegate void PolyAfterTouchDelegate(MidiChannel channel, int note, float pressure);
+        public delegate void ChannelAfterTouchDelegate(MidiChannel channel, float pressure);
 
         public NoteOnDelegate noteOnDelegate { get; set; }
         public NoteOffDelegate noteOffDelegate { get; set; }
         public KnobDelegate knobDelegate { get; set; }
+        public PolyAfterTouchDelegate polyAfterTouchDelegate { get; set; }
+        public ChannelAfterTouchDelegate channelAfterTouchDelegate { get; set; }
 
         #endregion
 
@@ -246,6 +270,26 @@ namespace MidiJack
                     _channelArray[(int)MidiChannel.All]._knobMap[message.data1] = level;
                     if (knobDelegate != null)
                         knobDelegate((MidiChannel)channelNumber, message.data1, level);
+                }
+
+                // channel after touch?
+                if (statusCode == 0xa)
+                {
+                    var pressure = 1.0f / 127 * message.data2;
+                    _channelArray[channelNumber]._afterTouchArray[message.data1] = pressure;
+                    _channelArray[(int)MidiChannel.All]._afterTouchArray[message.data1] = pressure;
+                    if(polyAfterTouchDelegate != null)
+                        polyAfterTouchDelegate((MidiChannel)channelNumber, message.data1, pressure);
+                }
+
+                // channel after touch?
+                if (statusCode == 0xd)
+                {
+                    var pressure = 1.0f / 127 * message.data1;
+                    _channelArray[channelNumber]._afterTouch = pressure;
+                    _channelArray[(int)MidiChannel.All]._afterTouch = pressure;
+                    if(channelAfterTouchDelegate != null)
+                        channelAfterTouchDelegate((MidiChannel)channelNumber, pressure);
                 }
 
                 #if UNITY_EDITOR
