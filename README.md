@@ -34,7 +34,7 @@ In that case, the functions return the values in the All-Channel slot, which sto
 mixed status of all active channels.
 
 - MidiMaster.GetKey (channel, noteNumber)
-  
+
   Returns the velocity value while the key is pressed, or zero while the
   key is released. The value ranges from 0.0 (note-off) to 1.0 (maximum
   velocity).
@@ -55,11 +55,21 @@ mixed status of all active channels.
 
   Returns the list of active controllers.
 
+- MidiMaster.GetChannelAfterTouch (channel)
+
+  Returns the channel after touch pressure. The value ranges from 0.0 to 1.0.
+
+- MidiMaster.GetPolyAfterTouch (channel, noteNumber)
+
+  Returns the polyphonic after touch pressure. The value ranges from 0.0 to 1.0.
+
 There are also delegates for the each type of MIDI event.
 
 - MidiMaster.noteOnDelegate (channel, noteNumber, velocity)
 - MidiMaster.noteOffDelegate (channel, noteNumber)
 - MidiMaster.knobDelegate (channel, knobNumber, konbValue)
+- MidiMaster.channelAfterTouchDelegate (channel, pressure)
+- MidiMaster.polyAfterTouchDelegate (channel, noteNumber, pressure)
 
 MIDI Monitor Window
 -------------------
