@@ -267,7 +267,7 @@ namespace MidiJack
                     var bend = (((float)bendInt / 16383.0f) * 2.0f) - 1.0f;
                     _channelArray[channelNumber]._pitchBend = bend;
                     _channelArray[(int)MidiChannel.All]._pitchBend = bend;
-                    if (knobDelegate != null)
+                    if (pitchBendDelegate != null)
                         pitchBendDelegate((MidiChannel)channelNumber, bend);
                 }
 
