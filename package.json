@@ -1,8 +1,13 @@
 {
-    "name": "jp.keijiro.midi-jack",
+    "author": "Keijiro Takahashi",
+    "dependencies": { },
+    "description": "MIDI input plugin for Unity",
     "displayName": "MidiJack",
-    "version": "0.0.1",
+    "keywords": [ "unity" ],
+    "license": "MIT",
+    "name": "jp.keijiro.midi-jack",
+    "repository": "github:keijiro/MidiJack",
     "unity": "2018.1",
-    "description": "MIDI Jack is a MIDI input plugin for Unity.",
-    "dependencies": { }
+    "unityRelease": "0f1",
+    "version": "0.0.1"
 }
