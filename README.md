@@ -69,7 +69,7 @@ active devices and incoming MIDI messages.
 
 ![monitor](http://keijiro.github.io/MidiJack/monitor.png)
 
-The MIDI Monitor window is avilable from the menu Window -> MIDI Jack.
+The MIDI Monitor window is available from the menu `Window` -> `MIDI Jack`.
 
 Current Limitations
 -------------------
