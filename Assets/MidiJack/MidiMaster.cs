@@ -41,6 +41,11 @@ namespace MidiJack
             set { MidiDriver.Instance.knobDelegate = value; }
         }
 
+        public static MidiDriver.PitchBendDelegate pitchBendDelegate {
+            get { return MidiDriver.Instance.pitchBendDelegate; }
+            set { MidiDriver.Instance.pitchBendDelegate = value; }
+        }
+
         // Returns the key state (on: velocity, off: zero).
         public static float GetKey(MidiChannel channel, int noteNumber)
         {
