@@ -1,3 +1,9 @@
+**Note: MidiJack is superseded by a new MIDI plugin [Minis]. Although you can
+still use MidiJack with the latest Unity version, it's recommended to migrate
+to Minis for further updates.**
+
+[Minis]: https://github.com/keijiro/Minis
+
 MIDI Jack
 =========
 
