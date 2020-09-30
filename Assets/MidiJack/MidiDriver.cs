@@ -266,8 +266,14 @@ namespace MidiJack
 
         #region Native Plugin Interface
 
+        #if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN
         [DllImport("MidiJackPlugin", EntryPoint="MidiJackDequeueIncomingData")]
         public static extern ulong DequeueIncomingData();
+        #else
+        public static ulong DequeueIncomingData() {
+          return 0;
+        }
+        #endif
 
         #endregion
 
