@@ -147,6 +147,51 @@ namespace
         
         return buffer;
     }
+
+	void OpenDevice(unsigned int i) {
+		MIDIEndpointRef source = MIDIGetSource(i);
+		if (source == 0) return;
+
+		// Retrieve the ID of the source.
+		SInt32 id;
+		if (MIDIObjectGetIntegerProperty(source, kMIDIPropertyUniqueID, &id) != noErr) return;
+		source_ids.at(i) = id;
+
+		// Connect the MIDI source to the input port.
+		if (MIDIPortConnectSource(midi_port, source, reinterpret_cast<void*>(id)) != noErr) return;
+	}
+
+	void CloseDevice(unsigned int id) {
+		if (midi_client != 0) {
+
+			MIDIEndpointRef source = MIDIGetSource(id);
+			if (source == 0) return;
+
+			MIDIPortDisconnectSource(midi_port, source);
+
+		}
+	}
+
+	// Close the all devices.
+	void CloseAllDevices()
+	{
+		if (midi_client != 0) {
+			ItemCount sourceCount = MIDIGetNumberOfSources();
+			source_ids.resize(sourceCount);
+
+			for (int i = 0; i < sourceCount; i++)
+			{
+				MIDIEndpointRef source = MIDIGetSource(i);
+				if (source == 0) return;
+
+				MIDIPortDisconnectSource(midi_port, source);
+			}
+		}
+	}
+
+	void RefreshDevices() {
+		// Stub for now
+	}
 }
 
 #pragma mark Exposed functions
@@ -167,8 +212,9 @@ extern "C" uint32_t MidiJackGetEndpointIDAtIndex(int index)
 }
 
 // Get the name of an endpoint.
-extern "C" const char* MidiJackGetEndpointName(uint32_t id)
+extern "C" const char* MidiJackGetEndpointName(int index)
 {
+	uint32_t id = MidiJackGetEndpointIDAtIndex(index);
     if (!ResetIfRequired()) return "(not ready)";
     static std::string temp;
     temp = GetSourceName(id);
@@ -186,4 +232,22 @@ extern "C" uint64_t MidiJackDequeueIncomingData()
     message_queue_lock.unlock();
     
     return m.Encode64Bit();
+}
+
+extern "C" void MidiJackCloseAllDevices()
+{
+	CloseAllDevices();
+}
+
+// Open Specific devices
+extern "C" void MidiJackOpenDevice(unsigned int index) {
+	OpenDevice(index);
+}
+
+extern "C" void MidiJackCloseDevice(unsigned int index) {
+	CloseDevice(index);
+}
+
+extern "C" void MidiJackRefreshDevices() {
+	RefreshDevices();
 }

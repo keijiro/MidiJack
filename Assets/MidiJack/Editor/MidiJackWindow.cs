@@ -23,12 +23,18 @@
 //
 using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace MidiJack
 {
     class MidiJackWindow : EditorWindow
     {
+
+        List<string> allDevices = new List<string>();
+        Dictionary<string, bool> allDevicesBound = new Dictionary<string, bool>();
+        bool _showDeviceManagement = true;
+
         #region Custom Editor Window Code
 
         [MenuItem("Window/MIDI Jack")]
@@ -37,30 +43,132 @@ namespace MidiJack
             EditorWindow.GetWindow<MidiJackWindow>("MIDI Jack");
         }
 
+        private void OnEnable()
+        {
+        //    Refresh();
+        }
+
+        void Refresh()
+        {
+            RefreshDevices();
+            GetDeviceNames();
+            RestoreDeviceValues();
+        }
+
+        void RestoreDeviceValues()
+        {
+            // Restore state from EditorPrefs
+            var keys = new List<string>();
+            foreach (var item in allDevicesBound.Keys)
+            {
+                keys.Add(item);
+            }
+            foreach (var key in keys)
+            {
+                allDevicesBound[key] = EditorPrefs.GetBool(GetPrefsKeyFromName(key), false);
+            }
+        }
+
         void OnGUI()
         {
-            var endpointCount = CountEndpoints();
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
 
-            // Endpoints
-            var temp = "Detected MIDI devices:";
-            for (var i = 0; i < endpointCount; i++)
+            // Device Management
+            _showDeviceManagement = EditorGUILayout.Foldout(_showDeviceManagement, "Device Management", true);
+            if (_showDeviceManagement)
             {
-                var id = GetEndpointIdAtIndex(i);
-                var name = GetEndpointName(id);
-                temp += "\n" + id.ToString("X8") + ": " + name;
+                var endpointCount = CountEndpoints();
+
+                EditorGUILayout.Space();
+
+                if (GUILayout.Button("Refresh"))
+                {
+                    Refresh();
+                }
+
+                // Device Buttons
+                for (uint i = 0; i < allDevices.Count; i++)
+                {
+                    string name = allDevices[(int)i];
+                    bool newValue = (GUILayout.Toggle(allDevicesBound[name], name));
+                    if (newValue != allDevicesBound[name])
+                    {
+                        if (newValue)
+                        {
+                            CloseAllDevices();
+                            OpenDevice(i);
+                        }
+                        else
+                        {
+                            CloseAllDevices();
+                        }
+
+                        SetDeviceState(name, newValue);
+                    }
+                }
+
+                // Close All Button
+                var closeButtonStyle = new GUIStyle(GUI.skin.button);
+                closeButtonStyle.normal.textColor = Color.red;
+                if (GUILayout.Button("Close All Devices", closeButtonStyle))
+                {
+                    CloseAllDevices();
+                    Repaint();
+                }
+
             }
-            EditorGUILayout.HelpBox(temp, MessageType.None);
+
+            EditorGUILayout.Space();
+
 
             // Message history
-            temp = "Recent MIDI messages:";
+            var temp = "Recent MIDI messages:";
             foreach (var message in MidiDriver.Instance.History)
                 temp += "\n" + message.ToString();
             EditorGUILayout.HelpBox(temp, MessageType.None);
         }
 
-        #endregion
+        void SetDeviceState(string deviceName, bool value)
+        {
+            EditorPrefs.SetBool(GetPrefsKeyFromName(deviceName), value);
+            allDevicesBound[deviceName] = value;
+        }
 
-        #region Update And Repaint
+        string GetPrefsKeyFromName(string name)
+        {
+            return string.Format("MidiJackDeviceEnabled-{0}", name);
+        }
+
+        void CloseAllDevices()
+        {
+            List<string> keys = new List<string>(allDevicesBound.Keys);
+            foreach (string key in keys)
+            {
+                SetDeviceState(key, false);
+            }
+            CloseDevices();
+        }
+
+        void GetDeviceNames()
+        {
+            allDevices = new List<string>();
+            var endpointCount = CountEndpoints();
+            for (int i = 0; i < endpointCount; i++)
+            {
+                var name = GetEndpointName((uint)i);
+
+                allDevices.Add(name);
+                if (!allDevicesBound.ContainsKey(name))
+                {
+                    allDevicesBound.Add(name, EditorPrefs.GetBool(GetPrefsKeyFromName(name), false));
+                }
+            }
+        }
+
+#endregion
+
+#region Update And Repaint
 
         const int _updateInterval = 15;
         int _countToUpdate;
@@ -79,9 +187,9 @@ namespace MidiJack
             _countToUpdate = _updateInterval;
         }
 
-        #endregion
+#endregion
 
-        #region Native Plugin Interface
+#region Native Plugin Interface
 
         [DllImport("MidiJackPlugin", EntryPoint="MidiJackCountEndpoints")]
         static extern int CountEndpoints();
@@ -96,6 +204,18 @@ namespace MidiJack
             return Marshal.PtrToStringAnsi(MidiJackGetEndpointName(id));
         }
 
-        #endregion
+        [DllImport("MidiJackPlugin", EntryPoint = "MidiJackCloseAllDevices")]
+        static extern void CloseDevices();
+
+        [DllImport("MidiJackPlugin", EntryPoint = "MidiJackCloseDevice")]
+        static extern void CloseDevice(uint index);
+
+        [DllImport("MidiJackPlugin", EntryPoint = "MidiJackOpenDevice")]
+        static extern void OpenDevice(uint index);
+
+        [DllImport("MidiJackPlugin", EntryPoint = "MidiJackRefreshDevices")]
+        static extern void RefreshDevices();
+
+#endregion
     }
 }

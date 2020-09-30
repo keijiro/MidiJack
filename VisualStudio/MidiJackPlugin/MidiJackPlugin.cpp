@@ -63,6 +63,7 @@ namespace
     std::queue<MidiMessage> message_queue;
 
     // Device handler lists
+	std::list<std::string> all_devices;
     std::list<DeviceHandle> active_handles;
     std::stack<DeviceHandle> handles_to_close;
 
@@ -130,12 +131,31 @@ namespace
         resource_lock.unlock();
     }
 
+	void CloseDevice(unsigned int id) {
+		auto handle = DeviceIDToHandle(id);
+		CloseDevice(handle);
+	}
+
     // Open the all devices.
     void OpenAllDevices()
     {
         int device_count = midiInGetNumDevs();
         for (int i = 0; i < device_count; i++) OpenDevice(i);
     }
+
+	void CacheDeviceNames() {
+		// Create list of device names
+		MIDIINCAPS caps;
+		int device_count = midiInGetNumDevs();
+		all_devices.clear();
+		for (int i = 0; i < device_count; i++) {
+			midiInGetDevCaps(i, &caps, sizeof(MIDIINCAPS));
+			std::wstring wname(caps.szPname);
+			std::string name = std::string(wname.begin(), wname.end());
+			all_devices.push_back(name);
+		}
+
+	}
 
     // Refresh device handlers
     void RefreshDevices()
@@ -148,8 +168,7 @@ namespace
             handles_to_close.pop();
         }
 
-        // Try open all devices to detect newly connected ones.
-        OpenAllDevices();
+		CacheDeviceNames();
 
         resource_lock.unlock();
     }
@@ -171,7 +190,7 @@ namespace
 // Counts the number of endpoints.
 EXPORT_API int MidiJackCountEndpoints()
 {
-    return static_cast<int>(active_handles.size());
+    return static_cast<int>(all_devices.size());
 }
 
 // Get the unique ID of an endpoint.
@@ -194,8 +213,6 @@ EXPORT_API const char* MidiJackGetEndpointName(uint32_t id)
 // Retrieve and erase an MIDI message data from the message queue.
 EXPORT_API uint64_t MidiJackDequeueIncomingData()
 {
-    RefreshDevices();
-
     if (message_queue.empty()) return 0;
 
     resource_lock.lock();
@@ -204,4 +221,23 @@ EXPORT_API uint64_t MidiJackDequeueIncomingData()
     resource_lock.unlock();
 
     return msg.Encode64Bit();
+}
+
+// Free all open devices
+EXPORT_API void MidiJackCloseAllDevices() 
+{
+	CloseAllDevices();
+}
+
+// Open Specific devices
+EXPORT_API void MidiJackOpenDevice(unsigned int index) {
+	OpenDevice(index);
+}
+
+EXPORT_API void MidiJackCloseDevice(unsigned int index) {
+	CloseDevice(index);
+}
+
+EXPORT_API void MidiJackRefreshDevices() {
+	RefreshDevices();
 }

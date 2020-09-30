@@ -1,0 +1,56 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
+
+    defaultConfig {
+        minSdkVersion 23
+        targetSdkVersion 24
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    provided files('./libs/UnityPlayer.jar')
+}
+
+android.libraryVariants.all { variant ->
+
+    // Task names.
+    String variantName = "${variant.name.capitalize()}"; // Like 'Debug'
+    String deployTaskGroup = "plugin";
+    String deployTaskName = "deploy${variantName}PluginArchive"; // Like 'deployDebugPluginArchive'
+    String dependencyTaskName = "assemble${variantName}"; // Like 'assembleDebug'
+
+    // Source.
+    String sourceAARFolder = "${buildDir.getPath()}/outputs/aar/";
+    String sourceAARName = "${project.name}-${variant.name}.aar";
+
+    // Target.
+    String targetAssetFolder = "Assets/MidiJack/Plugins/Android";
+    String targetAARFolder = "${rootDir.getPath()}/../../${targetAssetFolder}"; // Navigate into 'Assets'
+    String targetAARName = "MidiJackPlugin.aar"; // The form you ship your plugin
+
+    // Create task.
+    task(deployTaskName, dependsOn: dependencyTaskName, type: Copy) {
+        logger.lifecycle("${variant.name.capitalize()} AAR Folder: ${sourceAARFolder}")
+        logger.lifecycle("${variant.name.capitalize()} Target AAR Folder: ${targetAARFolder}")
+        logger.lifecycle("${variant.name.capitalize()} Target AAR name: ${targetAARName}")
+
+        from(sourceAARFolder)
+        into(targetAARFolder)
+        include(sourceAARName)
+        rename(sourceAARName, targetAARName)
+    }.group = deployTaskGroup;
+}

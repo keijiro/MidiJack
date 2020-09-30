@@ -202,6 +202,10 @@ namespace MidiJack
                 }
             }
 
+#if UNITY_ANDROID && !UNITY_EDITOR
+                return;
+#endif
+
             // Process the message queue.
             while (true)
             {
@@ -266,12 +270,61 @@ namespace MidiJack
 
         #region Native Plugin Interface
 
-        [DllImport("MidiJackPlugin", EntryPoint="MidiJackDequeueIncomingData")]
+        #if UNITY_ANDROID && !UNITY_EDITOR
+
+        private void HandleMidiMessage(object sender, MidiMessage message)
+        {
+            // Split the first byte.
+            var statusCode = message.status >> 4;
+            var channelNumber = message.status & 0xf;
+
+            // Note on message?
+            if (statusCode == 9)
+            {
+                Debug.LogFormat("Getting {0} On", message.data1);
+                var velocity = 1.0f / 127 * message.data2 + 1;
+                _channelArray[channelNumber]._noteArray[message.data1] = velocity;
+                _channelArray[(int)MidiChannel.All]._noteArray[message.data1] = velocity;
+                if (noteOnDelegate != null)
+                    noteOnDelegate((MidiChannel)channelNumber, message.data1, velocity - 1);
+            }
+
+            // Note off message?
+            if (statusCode == 8 || (statusCode == 9 && message.data2 == 0))
+            {
+                Debug.LogFormat("Getting {0} Off", message.data1);
+                _channelArray[channelNumber]._noteArray[message.data1] = -1;
+                _channelArray[(int)MidiChannel.All]._noteArray[message.data1] = -1;
+                if (noteOffDelegate != null)
+                    noteOffDelegate((MidiChannel)channelNumber, message.data1);
+            }
+
+            // CC message?
+            if (statusCode == 0xb)
+            {
+                // Normalize the value.
+                var level = 1.0f / 127 * message.data2;
+                // Update the channel if it already exists, or add a new channel.
+                _channelArray[channelNumber]._knobMap[message.data1] = level;
+                // Do again for All-ch.
+                _channelArray[(int)MidiChannel.All]._knobMap[message.data1] = level;
+                if (knobDelegate != null)
+                    knobDelegate((MidiChannel)channelNumber, message.data1, level);
+            }
+        }
+
+        private MidiDroid midiDroid;
+        public ulong DequeueIncomingData(){
+            return 0;
+        }
+        #else
+        [DllImport("MidiJackPlugin", EntryPoint = "MidiJackDequeueIncomingData")]
         public static extern ulong DequeueIncomingData();
+        #endif
 
-        #endregion
+#endregion
 
-        #region Singleton Class Instance
+#region Singleton Class Instance
 
         static MidiDriver _instance;
 
@@ -280,8 +333,15 @@ namespace MidiJack
                 if (_instance == null) {
                     _instance = new MidiDriver();
                     if (Application.isPlaying)
+                    {
                         MidiStateUpdater.CreateGameObject(
                             new MidiStateUpdater.Callback(_instance.Update));
+#if UNITY_ANDROID && !UNITY_EDITOR
+                        _instance.midiDroid = new MidiDroid();
+                        _instance.midiDroid.Start();
+                        _instance.midiDroid.callback.DroidMidiEvent += _instance.HandleMidiMessage;
+#endif
+                    }
                 }
                 return _instance;
             }
