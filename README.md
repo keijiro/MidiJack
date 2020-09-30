@@ -61,11 +61,16 @@ mixed status of all active channels.
 
   Returns the list of active controllers.
 
+- MidiMaster.GetPitchBendValue(channel)
+
+  Returns the current pitch bend value. The value ranges from -1.0 to 1.0 with 0 for no bend.
+
 There are also delegates for the each type of MIDI event.
 
 - MidiMaster.noteOnDelegate (channel, noteNumber, velocity)
 - MidiMaster.noteOffDelegate (channel, noteNumber)
 - MidiMaster.knobDelegate (channel, knobNumber, konbValue)
+- MidiMaster.pitchBendDelegate (channel, bendValue)
 
 MIDI Monitor Window
 -------------------

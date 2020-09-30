@@ -41,6 +41,9 @@ namespace MidiJack
             //          (X-1 represents velocity)
             public float[] _noteArray;
 
+            //Pitch bend values. Range -1 to 1
+            public float _pitchBendValue;
+
             // Knob number to knob value mapping
             public Dictionary<int, float> _knobMap;
 
@@ -99,6 +102,13 @@ namespace MidiJack
             return defaultValue;
         }
 
+        public float GetPitchBend(MidiChannel channel)
+        {
+            UpdateIfNeeded();
+            var cs = _channelArray[(int)channel];
+            return cs._pitchBendValue;
+        }
+
         #endregion
 
         #region Event Delegates
@@ -106,10 +116,12 @@ namespace MidiJack
         public delegate void NoteOnDelegate(MidiChannel channel, int note, float velocity);
         public delegate void NoteOffDelegate(MidiChannel channel, int note);
         public delegate void KnobDelegate(MidiChannel channel, int knobNumber, float knobValue);
+        public delegate void PitchBendDelegate(MidiChannel channel, float bendValue);
 
         public NoteOnDelegate noteOnDelegate { get; set; }
         public NoteOffDelegate noteOffDelegate { get; set; }
         public KnobDelegate knobDelegate { get; set; }
+        public PitchBendDelegate pitchBendDelegate { get; set; }
 
         #endregion
 
@@ -233,6 +245,16 @@ namespace MidiJack
                     _channelArray[(int)MidiChannel.All]._noteArray[message.data1] = -1;
                     if (noteOffDelegate != null)
                         noteOffDelegate((MidiChannel)channelNumber, message.data1);
+                }
+
+                //Pitch Bend message?
+                if(statusCode == 14)
+                {
+                    var bend = 1.0f / 127 * message.data2 * 2 - 1; //Map to range between -1 and 1 with center at 0
+                    _channelArray[channelNumber]._pitchBendValue = bend;
+                    if (pitchBendDelegate != null)
+                        pitchBendDelegate((MidiChannel)channelNumber, bend);
+                    //Debug.Log("Pitch bend: " + bend.ToString("0.000"));
                 }
 
                 // CC message?
