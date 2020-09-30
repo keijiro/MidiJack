@@ -40,20 +40,36 @@ namespace MidiJack
         void OnGUI()
         {
             var endpointCount = CountEndpoints();
+            var endpointCountSend = CountSendEndpoints();
 
             // Endpoints
-            var temp = "Detected MIDI devices:";
+            var temp = "Detected MIDI IN devices:";
             for (var i = 0; i < endpointCount; i++)
             {
                 var id = GetEndpointIdAtIndex(i);
                 var name = GetEndpointName(id);
                 temp += "\n" + id.ToString("X8") + ": " + name;
             }
+
+            temp += "\n\n" + "Detected MIDI OUT devices:";
+            for (var i = 0; i < endpointCountSend; i++)
+            {
+                var id = GetSendEndpointIdAtIndex(i);
+                var name = GetSendEndpointName(id);
+                temp += "\n" + id.ToString("X8") + ": " + name;
+            }
+
             EditorGUILayout.HelpBox(temp, MessageType.None);
 
             // Message history
-            temp = "Recent MIDI messages:";
+            temp = "Recent MIDI IN messages:";
             foreach (var message in MidiDriver.Instance.History)
+                temp += "\n" + message.ToString();
+            EditorGUILayout.HelpBox(temp, MessageType.None);
+
+            // Send Message history
+            temp = "Recent MIDI OUT messages:";
+            foreach (var message in MidiDriver.Instance.HistorySend)
                 temp += "\n" + message.ToString();
             EditorGUILayout.HelpBox(temp, MessageType.None);
         }
@@ -83,6 +99,7 @@ namespace MidiJack
 
         #region Native Plugin Interface
 
+        // MIDI IN
         [DllImport("MidiJackPlugin", EntryPoint="MidiJackCountEndpoints")]
         static extern int CountEndpoints();
 
@@ -94,6 +111,20 @@ namespace MidiJack
 
         static string GetEndpointName(uint id) {
             return Marshal.PtrToStringAnsi(MidiJackGetEndpointName(id));
+        }
+
+        // MIDI OUT
+        [DllImport("MidiJackPlugin", EntryPoint="MidiJackCountSendEndpoints")]
+        static extern int CountSendEndpoints();
+
+        [DllImport("MidiJackPlugin", EntryPoint="MidiJackGetSendEndpointIDAtIndex")]
+        static extern uint GetSendEndpointIdAtIndex(int index);
+
+        [DllImport("MidiJackPlugin")]
+        static extern System.IntPtr MidiJackGetSendEndpointName(uint id);
+
+        static string GetSendEndpointName(uint id) {
+            return Marshal.PtrToStringAnsi(MidiJackGetSendEndpointName(id));
         }
 
         #endregion

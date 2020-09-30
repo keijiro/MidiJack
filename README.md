@@ -7,7 +7,7 @@ to Minis for further updates.**
 MIDI Jack
 =========
 
-MIDI Jack is a MIDI input plugin for Unity.
+MIDI Jack is a MIDI input / output plugin for Unity. (output is supported Windows x64 only)
 
 ![sample](http://keijiro.github.io/MidiJack/sample.gif)
 
@@ -39,8 +39,10 @@ The channel arguments in the following functions can be omitted.
 In that case, the functions return the values in the All-Channel slot, which stores
 mixed status of all active channels.
 
+*Input* 
+
 - MidiMaster.GetKey (channel, noteNumber)
-  
+
   Returns the velocity value while the key is pressed, or zero while the
   key is released. The value ranges from 0.0 (note-off) to 1.0 (maximum
   velocity).
@@ -66,6 +68,37 @@ There are also delegates for the each type of MIDI event.
 - MidiMaster.noteOnDelegate (channel, noteNumber, velocity)
 - MidiMaster.noteOffDelegate (channel, noteNumber)
 - MidiMaster.knobDelegate (channel, knobNumber, konbValue)
+
+
+*Output*
+
+- MidiMaster.SendMessage(deviceID, message)
+
+  send entire MIDI message to device.
+
+- MidiMaster.SendNoteOn(deviceID, channel, noteNumber, velocity)
+
+  send note on to device. velocity is 0.0 to 1.0 range.
+
+- MidiMaster.SendNoteOff(deviceID, channel, noteNumber, velocity)
+
+  send note off to device.
+
+- MidiMaster.SendCC(deviceID, channel, ccNumber, value)
+
+  send CC message to device. value is 0.0 to 1.0 range.
+
+- MidiMaster.SendChannelMessage(deviceID, statusbyte, databyte)
+
+  send channel message to device.
+
+- MidiMaster.SendChannelMessage(deviceID, statusbyte, channel, databyte)
+
+  send channel message to device. (channel selectable orverload)
+
+
+you can find out how to identify _Device ID_ from example code  _SendTestMIDIManager.cs_, with scenes in _Assets/ExampleSend_.
+
 
 MIDI Monitor Window
 -------------------
