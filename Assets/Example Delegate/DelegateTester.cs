@@ -18,11 +18,17 @@ public class DelegateTester : MonoBehaviour
         Debug.Log("Knob: " + knobNumber + "," + knobValue);
     }
 
+    void Bend(MidiChannel channel, float bend)
+    {
+        Debug.Log("Bend: " + bend);
+    }
+
     void OnEnable()
     {
         MidiMaster.noteOnDelegate += NoteOn;
         MidiMaster.noteOffDelegate += NoteOff;
         MidiMaster.knobDelegate += Knob;
+        MidiMaster.pitchBendDelegate += Bend;
     }
 
     void OnDisable()
@@ -30,5 +36,6 @@ public class DelegateTester : MonoBehaviour
         MidiMaster.noteOnDelegate -= NoteOn;
         MidiMaster.noteOffDelegate -= NoteOff;
         MidiMaster.knobDelegate -= Knob;
+        MidiMaster.pitchBendDelegate -= Bend;
     }
 }
