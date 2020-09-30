@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <map>
 #include <mutex>
 #include <queue>
 #include <list>
